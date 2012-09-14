@@ -7,8 +7,9 @@
 //
 
 #import "MasterViewController.h"
-
 #import "DetailViewController.h"
+#import "FacebookMapAppDelegate.h"
+#import <FacebookSDK/FacebookSDK.h>
 
 @interface MasterViewController ()
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath;
@@ -33,6 +34,17 @@
     // Release any cached data, images, etc that aren't in use.
 }
 
+- (void)showLoginView
+{
+    [self performSegueWithIdentifier:@"login" sender:self];
+}
+
+- (void)facebookDidLogIn:(id)sender
+{
+    // dismiss login view
+    [self dismissModalViewControllerAnimated:YES];
+}
+
 #pragma mark - View lifecycle
 
 - (void)viewDidLoad
@@ -42,13 +54,17 @@
     self.detailViewController = (DetailViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
 
     // TODO: set up refresh button
+    
+    // Register for notifications
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(facebookDidLogIn:) name:@"FBSessionStateOpenNotification" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(showLoginView) name:@"FBSessionStateClosedNotification" object:nil];
 }
 
 - (void)viewDidUnload
 {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
     [super viewDidUnload];
-    // Release any retained subviews of the main view.
-    // e.g. self.myOutlet = nil;
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -59,6 +75,17 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
+    
+    // See if we have a valid token for the current state.
+    if (FBSession.activeSession.state == FBSessionStateCreatedTokenLoaded) {
+        // Yes, so just open the session (this won't display any UX).
+        // TODO: refactor, this is an antipattern
+        FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+        [appDelegate facebookOpenSession];
+    } else {
+        // No, display the login page.
+        [self showLoginView];
+    }
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -75,6 +102,13 @@
 {
     // Return YES for supported orientations
     return YES;
+}
+
+#pragma mark - UIStoryboardSegue
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+{
+    
 }
 
 // Customize the number of sections in the table view.

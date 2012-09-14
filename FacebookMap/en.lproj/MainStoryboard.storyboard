@@ -124,7 +124,7 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="logIn" destination="iXr-oB-48x" eventType="touchUpInside" id="g4O-hn-jL3"/>
+                                    <action selector="performLogin" destination="iXr-oB-48x" eventType="touchUpInside" id="VMU-oU-AYc"/>
                                 </connections>
                             </button>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Log in with Facebook" lineBreakMode="tailTruncation" minimumFontSize="10" id="Y78-lJ-bdC">
