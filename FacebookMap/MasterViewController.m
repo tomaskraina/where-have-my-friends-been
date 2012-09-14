@@ -45,6 +45,11 @@
     [self dismissModalViewControllerAnimated:YES];
 }
 
+- (void)performLogout:(id)sender
+{
+    
+}
+
 #pragma mark - View lifecycle
 
 - (void)viewDidLoad
@@ -82,6 +87,13 @@
         // TODO: refactor, this is an antipattern
         FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
         [appDelegate facebookOpenSession];
+        
+        // Show the logout button
+        if (!self.navigationItem.leftBarButtonItem) {
+            UIBarButtonItem *logoutButton = [[UIBarButtonItem alloc] initWithTitle:@"Logout" style:UIBarButtonItemStyleBordered target:self action:@selector(performLogout:)];
+            self.navigationItem.leftBarButtonItem = logoutButton;
+        }
+        
     } else {
         // No, display the login page.
         [self showLoginView];
