@@ -242,7 +242,8 @@
 
 - (void)facebookOpenSession
 {
-    [FBSession openActiveSessionWithPermissions:nil
+    NSArray *permissions = [NSArray arrayWithObjects:@"friends_status", @"friends_photos", @"friends_hometown", @"friends_location",  nil];
+    [FBSession openActiveSessionWithPermissions:permissions
                                    allowLoginUI:YES
                               completionHandler:
      ^(FBSession *session, 
