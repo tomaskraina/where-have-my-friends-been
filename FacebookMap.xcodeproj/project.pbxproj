@@ -1,0 +1,344 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2CDF662E160386820091D2D4 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CDF662D160386820091D2D4 /* UIKit.framework */; };
+		2CDF6630160386820091D2D4 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CDF662F160386820091D2D4 /* Foundation.framework */; };
+		2CDF6632160386820091D2D4 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CDF6631160386820091D2D4 /* CoreGraphics.framework */; };
+		2CDF6634160386820091D2D4 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CDF6633160386820091D2D4 /* CoreData.framework */; };
+		2CDF663A160386820091D2D4 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 2CDF6638160386820091D2D4 /* InfoPlist.strings */; };
+		2CDF663C160386820091D2D4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF663B160386820091D2D4 /* main.m */; };
+		2CDF6640160386820091D2D4 /* FacebookMapAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF663F160386820091D2D4 /* FacebookMapAppDelegate.m */; };
+		2CDF6643160386820091D2D4 /* MainStoryboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2CDF6641160386820091D2D4 /* MainStoryboard.storyboard */; };
+		2CDF6646160386820091D2D4 /* FacebookMap.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF6644160386820091D2D4 /* FacebookMap.xcdatamodeld */; };
+		2CDF6649160386820091D2D4 /* MasterViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF6648160386820091D2D4 /* MasterViewController.m */; };
+		2CDF664C160386820091D2D4 /* DetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF664B160386820091D2D4 /* DetailViewController.m */; };
+		2CDF6653160386B00091D2D4 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CDF6652160386B00091D2D4 /* CoreLocation.framework */; };
+		2CDF6655160386B80091D2D4 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CDF6654160386B80091D2D4 /* MapKit.framework */; };
+		2CDF666F1603BAEB0091D2D4 /* FacebookSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CDF666E1603BAEB0091D2D4 /* FacebookSDK.framework */; };
+		2CDF66711603BAF70091D2D4 /* FacebookSDKResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 2CDF66701603BAF70091D2D4 /* FacebookSDKResources.bundle */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		2CDF6629160386820091D2D4 /* FacebookMap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FacebookMap.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2CDF662D160386820091D2D4 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		2CDF662F160386820091D2D4 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		2CDF6631160386820091D2D4 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		2CDF6633160386820091D2D4 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		2CDF6637160386820091D2D4 /* FacebookMap-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "FacebookMap-Info.plist"; sourceTree = "<group>"; };
+		2CDF6639160386820091D2D4 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		2CDF663B160386820091D2D4 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = main.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
+		2CDF663D160386820091D2D4 /* FacebookMap-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FacebookMap-Prefix.pch"; sourceTree = "<group>"; };
+		2CDF663E160386820091D2D4 /* FacebookMapAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = FacebookMapAppDelegate.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		2CDF663F160386820091D2D4 /* FacebookMapAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = FacebookMapAppDelegate.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
+		2CDF6642160386820091D2D4 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard.storyboard; sourceTree = "<group>"; };
+		2CDF6645160386820091D2D4 /* FacebookMap.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = FacebookMap.xcdatamodel; sourceTree = "<group>"; };
+		2CDF6647160386820091D2D4 /* MasterViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = MasterViewController.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		2CDF6648160386820091D2D4 /* MasterViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = MasterViewController.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
+		2CDF664A160386820091D2D4 /* DetailViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = DetailViewController.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		2CDF664B160386820091D2D4 /* DetailViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = DetailViewController.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
+		2CDF6652160386B00091D2D4 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		2CDF6654160386B80091D2D4 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
+		2CDF666E1603BAEB0091D2D4 /* FacebookSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FacebookSDK.framework; path = lib/FacebookSDK.framework; sourceTree = "<group>"; };
+		2CDF66701603BAF70091D2D4 /* FacebookSDKResources.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = FacebookSDKResources.bundle; path = lib/FacebookSDK.framework/Versions/A/Resources/FacebookSDKResources.bundle; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2CDF6626160386820091D2D4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2CDF6655160386B80091D2D4 /* MapKit.framework in Frameworks */,
+				2CDF6653160386B00091D2D4 /* CoreLocation.framework in Frameworks */,
+				2CDF662E160386820091D2D4 /* UIKit.framework in Frameworks */,
+				2CDF6630160386820091D2D4 /* Foundation.framework in Frameworks */,
+				2CDF6632160386820091D2D4 /* CoreGraphics.framework in Frameworks */,
+				2CDF6634160386820091D2D4 /* CoreData.framework in Frameworks */,
+				2CDF666F1603BAEB0091D2D4 /* FacebookSDK.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		2CDF661E160386810091D2D4 = {
+			isa = PBXGroup;
+			children = (
+				2CDF6635160386820091D2D4 /* FacebookMap */,
+				2CDF662C160386820091D2D4 /* Frameworks */,
+				2CDF662A160386820091D2D4 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		2CDF662A160386820091D2D4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2CDF6629160386820091D2D4 /* FacebookMap.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		2CDF662C160386820091D2D4 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				2CDF66701603BAF70091D2D4 /* FacebookSDKResources.bundle */,
+				2CDF666E1603BAEB0091D2D4 /* FacebookSDK.framework */,
+				2CDF6654160386B80091D2D4 /* MapKit.framework */,
+				2CDF6652160386B00091D2D4 /* CoreLocation.framework */,
+				2CDF662D160386820091D2D4 /* UIKit.framework */,
+				2CDF662F160386820091D2D4 /* Foundation.framework */,
+				2CDF6631160386820091D2D4 /* CoreGraphics.framework */,
+				2CDF6633160386820091D2D4 /* CoreData.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		2CDF6635160386820091D2D4 /* FacebookMap */ = {
+			isa = PBXGroup;
+			children = (
+				2CDF663E160386820091D2D4 /* FacebookMapAppDelegate.h */,
+				2CDF663F160386820091D2D4 /* FacebookMapAppDelegate.m */,
+				2CDF6641160386820091D2D4 /* MainStoryboard.storyboard */,
+				2CDF6647160386820091D2D4 /* MasterViewController.h */,
+				2CDF6648160386820091D2D4 /* MasterViewController.m */,
+				2CDF664A160386820091D2D4 /* DetailViewController.h */,
+				2CDF664B160386820091D2D4 /* DetailViewController.m */,
+				2CDF6644160386820091D2D4 /* FacebookMap.xcdatamodeld */,
+				2CDF6636160386820091D2D4 /* Supporting Files */,
+			);
+			path = FacebookMap;
+			sourceTree = "<group>";
+		};
+		2CDF6636160386820091D2D4 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				2CDF6637160386820091D2D4 /* FacebookMap-Info.plist */,
+				2CDF6638160386820091D2D4 /* InfoPlist.strings */,
+				2CDF663B160386820091D2D4 /* main.m */,
+				2CDF663D160386820091D2D4 /* FacebookMap-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2CDF6628160386820091D2D4 /* FacebookMap */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2CDF664F160386820091D2D4 /* Build configuration list for PBXNativeTarget "FacebookMap" */;
+			buildPhases = (
+				2CDF6625160386820091D2D4 /* Sources */,
+				2CDF6626160386820091D2D4 /* Frameworks */,
+				2CDF6627160386820091D2D4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FacebookMap;
+			productName = FacebookMap;
+			productReference = 2CDF6629160386820091D2D4 /* FacebookMap.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		2CDF6620160386810091D2D4 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0420;
+				ORGANIZATIONNAME = tomkraina.com;
+			};
+			buildConfigurationList = 2CDF6623160386810091D2D4 /* Build configuration list for PBXProject "FacebookMap" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 2CDF661E160386810091D2D4;
+			productRefGroup = 2CDF662A160386820091D2D4 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2CDF6628160386820091D2D4 /* FacebookMap */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		2CDF6627160386820091D2D4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2CDF663A160386820091D2D4 /* InfoPlist.strings in Resources */,
+				2CDF6643160386820091D2D4 /* MainStoryboard.storyboard in Resources */,
+				2CDF66711603BAF70091D2D4 /* FacebookSDKResources.bundle in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2CDF6625160386820091D2D4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2CDF663C160386820091D2D4 /* main.m in Sources */,
+				2CDF6640160386820091D2D4 /* FacebookMapAppDelegate.m in Sources */,
+				2CDF6646160386820091D2D4 /* FacebookMap.xcdatamodeld in Sources */,
+				2CDF6649160386820091D2D4 /* MasterViewController.m in Sources */,
+				2CDF664C160386820091D2D4 /* DetailViewController.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		2CDF6638160386820091D2D4 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				2CDF6639160386820091D2D4 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		2CDF6641160386820091D2D4 /* MainStoryboard.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				2CDF6642160386820091D2D4 /* en */,
+			);
+			name = MainStoryboard.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		2CDF664D160386820091D2D4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 2;
+			};
+			name = Debug;
+		};
+		2CDF664E160386820091D2D4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 2;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		2CDF6650160386820091D2D4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../_resources_/FacebookSDK\"",
+					"\"$(SRCROOT)/../../_resources_/facebook-ios-sdk/build\"",
+					"\"$(SRCROOT)\"",
+					"\"$(SRCROOT)/lib\"",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "FacebookMap/FacebookMap-Prefix.pch";
+				INFOPLIST_FILE = "FacebookMap/FacebookMap-Info.plist";
+				OTHER_LDFLAGS = "-lsqlite3.0";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		2CDF6651160386820091D2D4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../_resources_/FacebookSDK\"",
+					"\"$(SRCROOT)/../../_resources_/facebook-ios-sdk/build\"",
+					"\"$(SRCROOT)\"",
+					"\"$(SRCROOT)/lib\"",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "FacebookMap/FacebookMap-Prefix.pch";
+				INFOPLIST_FILE = "FacebookMap/FacebookMap-Info.plist";
+				OTHER_LDFLAGS = "-lsqlite3.0";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2CDF6623160386810091D2D4 /* Build configuration list for PBXProject "FacebookMap" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2CDF664D160386820091D2D4 /* Debug */,
+				2CDF664E160386820091D2D4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2CDF664F160386820091D2D4 /* Build configuration list for PBXNativeTarget "FacebookMap" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2CDF6650160386820091D2D4 /* Debug */,
+				2CDF6651160386820091D2D4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		2CDF6644160386820091D2D4 /* FacebookMap.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				2CDF6645160386820091D2D4 /* FacebookMap.xcdatamodel */,
+			);
+			currentVersion = 2CDF6645160386820091D2D4 /* FacebookMap.xcdatamodel */;
+			path = FacebookMap.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
+	};
+	rootObject = 2CDF6620160386810091D2D4 /* Project object */;
+}

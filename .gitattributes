@@ -1,0 +1,4 @@
+# .gitattributes file for Xcode projects
+# see https://gist.github.com/137348
+
+*.pbxproj -crlf -diff -merge
