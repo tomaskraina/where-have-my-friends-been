@@ -201,29 +201,13 @@
                       error:(NSError *)error
 {
     switch (state) {
-        case FBSessionStateOpen: {
-//            UIViewController *topViewController = 
-//            [self.navController topViewController];
-//            if ([[topViewController modalViewController] 
-//                 isKindOfClass:[SCLoginViewController class]]) {
-//                [topViewController dismissModalViewControllerAnimated:YES];
-//            }
-            
+        case FBSessionStateOpen:
             [[NSNotificationCenter defaultCenter] postNotificationName:@"FBSessionStateOpenNotification" object:self];
-        }
             break;
         case FBSessionStateClosed:
         case FBSessionStateClosedLoginFailed:
-            // Once the user has logged in, we want them to 
-            // be looking at the root view.
-//            [self.navController popToRootViewControllerAnimated:NO];
-            
             [FBSession.activeSession closeAndClearTokenInformation];
-            
-//            [self showLoginView];
-            
             [[NSNotificationCenter defaultCenter] postNotificationName:@"FBSessionStateClosedNotification" object:self];
-            
             break;
         default:
             break;
