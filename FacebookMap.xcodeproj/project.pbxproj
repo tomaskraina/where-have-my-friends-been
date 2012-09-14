@@ -25,6 +25,7 @@
 		2CDF66751603CEDF0091D2D4 /* LocationObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF66741603CEDF0091D2D4 /* LocationObject.m */; };
 		2CDF66781603CEDF0091D2D4 /* Friend.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF66771603CEDF0091D2D4 /* Friend.m */; };
 		2CDF667B1603CEDF0091D2D4 /* Place.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF667A1603CEDF0091D2D4 /* Place.m */; };
+		2CDF667E1603DD8A0091D2D4 /* LogInViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF667D1603DD8A0091D2D4 /* LogInViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -55,6 +56,8 @@
 		2CDF66771603CEDF0091D2D4 /* Friend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Friend.m; sourceTree = "<group>"; };
 		2CDF66791603CEDF0091D2D4 /* Place.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Place.h; sourceTree = "<group>"; };
 		2CDF667A1603CEDF0091D2D4 /* Place.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Place.m; sourceTree = "<group>"; };
+		2CDF667C1603DD8A0091D2D4 /* LogInViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LogInViewController.h; sourceTree = "<group>"; };
+		2CDF667D1603DD8A0091D2D4 /* LogInViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogInViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,6 +121,8 @@
 				2CDF6648160386820091D2D4 /* MasterViewController.m */,
 				2CDF664A160386820091D2D4 /* DetailViewController.h */,
 				2CDF664B160386820091D2D4 /* DetailViewController.m */,
+				2CDF667C1603DD8A0091D2D4 /* LogInViewController.h */,
+				2CDF667D1603DD8A0091D2D4 /* LogInViewController.m */,
 				2CDF6636160386820091D2D4 /* Supporting Files */,
 			);
 			path = FacebookMap;
@@ -220,6 +225,7 @@
 				2CDF66751603CEDF0091D2D4 /* LocationObject.m in Sources */,
 				2CDF66781603CEDF0091D2D4 /* Friend.m in Sources */,
 				2CDF667B1603CEDF0091D2D4 /* Place.m in Sources */,
+				2CDF667E1603DD8A0091D2D4 /* LogInViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
