@@ -22,6 +22,9 @@
 		2CDF6655160386B80091D2D4 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CDF6654160386B80091D2D4 /* MapKit.framework */; };
 		2CDF666F1603BAEB0091D2D4 /* FacebookSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CDF666E1603BAEB0091D2D4 /* FacebookSDK.framework */; };
 		2CDF66711603BAF70091D2D4 /* FacebookSDKResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 2CDF66701603BAF70091D2D4 /* FacebookSDKResources.bundle */; };
+		2CDF66751603CEDF0091D2D4 /* LocationObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF66741603CEDF0091D2D4 /* LocationObject.m */; };
+		2CDF66781603CEDF0091D2D4 /* Friend.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF66771603CEDF0091D2D4 /* Friend.m */; };
+		2CDF667B1603CEDF0091D2D4 /* Place.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF667A1603CEDF0091D2D4 /* Place.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,6 +49,12 @@
 		2CDF6654160386B80091D2D4 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		2CDF666E1603BAEB0091D2D4 /* FacebookSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FacebookSDK.framework; path = lib/FacebookSDK.framework; sourceTree = "<group>"; };
 		2CDF66701603BAF70091D2D4 /* FacebookSDKResources.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = FacebookSDKResources.bundle; path = lib/FacebookSDK.framework/Versions/A/Resources/FacebookSDKResources.bundle; sourceTree = "<group>"; };
+		2CDF66731603CEDF0091D2D4 /* LocationObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocationObject.h; sourceTree = "<group>"; };
+		2CDF66741603CEDF0091D2D4 /* LocationObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LocationObject.m; sourceTree = "<group>"; };
+		2CDF66761603CEDF0091D2D4 /* Friend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Friend.h; sourceTree = "<group>"; };
+		2CDF66771603CEDF0091D2D4 /* Friend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Friend.m; sourceTree = "<group>"; };
+		2CDF66791603CEDF0091D2D4 /* Place.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Place.h; sourceTree = "<group>"; };
+		2CDF667A1603CEDF0091D2D4 /* Place.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Place.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +110,7 @@
 		2CDF6635160386820091D2D4 /* FacebookMap */ = {
 			isa = PBXGroup;
 			children = (
+				2CDF66721603CE9E0091D2D4 /* Model */,
 				2CDF663E160386820091D2D4 /* FacebookMapAppDelegate.h */,
 				2CDF663F160386820091D2D4 /* FacebookMapAppDelegate.m */,
 				2CDF6641160386820091D2D4 /* MainStoryboard.storyboard */,
@@ -108,7 +118,6 @@
 				2CDF6648160386820091D2D4 /* MasterViewController.m */,
 				2CDF664A160386820091D2D4 /* DetailViewController.h */,
 				2CDF664B160386820091D2D4 /* DetailViewController.m */,
-				2CDF6644160386820091D2D4 /* FacebookMap.xcdatamodeld */,
 				2CDF6636160386820091D2D4 /* Supporting Files */,
 			);
 			path = FacebookMap;
@@ -123,6 +132,20 @@
 				2CDF663D160386820091D2D4 /* FacebookMap-Prefix.pch */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		2CDF66721603CE9E0091D2D4 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				2CDF66791603CEDF0091D2D4 /* Place.h */,
+				2CDF667A1603CEDF0091D2D4 /* Place.m */,
+				2CDF66761603CEDF0091D2D4 /* Friend.h */,
+				2CDF66771603CEDF0091D2D4 /* Friend.m */,
+				2CDF66731603CEDF0091D2D4 /* LocationObject.h */,
+				2CDF66741603CEDF0091D2D4 /* LocationObject.m */,
+				2CDF6644160386820091D2D4 /* FacebookMap.xcdatamodeld */,
+			);
+			name = Model;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -194,6 +217,9 @@
 				2CDF6646160386820091D2D4 /* FacebookMap.xcdatamodeld in Sources */,
 				2CDF6649160386820091D2D4 /* MasterViewController.m in Sources */,
 				2CDF664C160386820091D2D4 /* DetailViewController.m in Sources */,
+				2CDF66751603CEDF0091D2D4 /* LocationObject.m in Sources */,
+				2CDF66781603CEDF0091D2D4 /* Friend.m in Sources */,
+				2CDF667B1603CEDF0091D2D4 /* Place.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -271,8 +297,6 @@
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../../_resources_/FacebookSDK\"",
-					"\"$(SRCROOT)/../../_resources_/facebook-ios-sdk/build\"",
 					"\"$(SRCROOT)\"",
 					"\"$(SRCROOT)/lib\"",
 				);
@@ -290,8 +314,6 @@
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../../_resources_/FacebookSDK\"",
-					"\"$(SRCROOT)/../../_resources_/facebook-ios-sdk/build\"",
 					"\"$(SRCROOT)\"",
 					"\"$(SRCROOT)/lib\"",
 				);
