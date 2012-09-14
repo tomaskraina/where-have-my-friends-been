@@ -163,6 +163,10 @@
          
          */
         NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
+        
+        // Try to delete current store
+        [[NSFileManager defaultManager] removeItemAtURL:storeURL error:nil];
+        
         abort();
     }    
     

@@ -7,8 +7,10 @@
 //
 
 #import "DetailViewController.h"
+#import <MapKit/MapKit.h>
 
 @interface DetailViewController ()
+@property (weak, nonatomic) IBOutlet MKMapView *mapView;
 @property (strong, nonatomic) UIPopoverController *masterPopoverController;
 - (void)configureView;
 @end
@@ -16,7 +18,7 @@
 @implementation DetailViewController
 
 @synthesize detailItem = _detailItem;
-@synthesize detailDescriptionLabel = _detailDescriptionLabel;
+@synthesize mapView = _mapView;
 @synthesize masterPopoverController = _masterPopoverController;
 
 #pragma mark - Managing the detail item
@@ -39,9 +41,6 @@
 {
     // Update the user interface for the detail item.
 
-    if (self.detailItem) {
-        self.detailDescriptionLabel.text = [self.detailItem description];
-    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -61,6 +60,7 @@
 
 - (void)viewDidUnload
 {
+    [self setMapView:nil];
     [super viewDidUnload];
     // Release any retained subviews of the main view.
     // e.g. self.myOutlet = nil;
