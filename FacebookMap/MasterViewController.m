@@ -34,20 +34,36 @@
     // Release any cached data, images, etc that aren't in use.
 }
 
-- (void)showLoginView
+- (void)showLoginScreen
 {
     [self performSegueWithIdentifier:@"login" sender:self];
+}
+
+- (void)setUpLogoutButton
+{
+    UIBarButtonItem *logoutButton = [[UIBarButtonItem alloc] initWithTitle:@"Logout" style:UIBarButtonItemStyleBordered target:self action:@selector(performLogout:)];
+    self.navigationItem.leftBarButtonItem = logoutButton;
+}
+
+- (void)facebookDidLogOut:(id)sender
+{
+    // hide the logout button
+    self.navigationItem.leftBarButtonItem = nil;
+    
+    [self showLoginScreen];
 }
 
 - (void)facebookDidLogIn:(id)sender
 {
     // dismiss login view
     [self dismissModalViewControllerAnimated:YES];
+    
+    [self setUpLogoutButton];
 }
 
 - (void)performLogout:(id)sender
 {
-    
+    [FBSession.activeSession closeAndClearTokenInformation];
 }
 
 #pragma mark - View lifecycle
@@ -62,7 +78,7 @@
     
     // Register for notifications
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(facebookDidLogIn:) name:@"FBSessionStateOpenNotification" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(showLoginView) name:@"FBSessionStateClosedNotification" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(facebookDidLogOut:) name:@"FBSessionStateClosedNotification" object:nil];
 }
 
 - (void)viewDidUnload
@@ -90,13 +106,12 @@
         
         // Show the logout button
         if (!self.navigationItem.leftBarButtonItem) {
-            UIBarButtonItem *logoutButton = [[UIBarButtonItem alloc] initWithTitle:@"Logout" style:UIBarButtonItemStyleBordered target:self action:@selector(performLogout:)];
-            self.navigationItem.leftBarButtonItem = logoutButton;
+            [self setUpLogoutButton];
         }
         
     } else {
         // No, display the login page.
-        [self showLoginView];
+        [self showLoginScreen];
     }
 }
 
