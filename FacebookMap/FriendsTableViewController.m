@@ -13,6 +13,8 @@
 
 @interface FriendsTableViewController () <UITableViewDataSource, UITableViewDelegate>
 @property (strong, nonatomic) NSArray *friends;
+@property (strong, nonatomic, readonly) NSMutableDictionary *sectionedFriends;
+@property (strong, nonatomic, readonly) NSArray *sections;
 @property (strong, nonatomic) NSMutableDictionary *locations;
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath;
 @end
@@ -23,8 +25,38 @@
 @synthesize fetchedResultsController = __fetchedResultsController;
 @synthesize managedObjectContext = __managedObjectContext;
 @synthesize friends = _friends;
+@synthesize sectionedFriends = _sectionedFriends;
+@synthesize sections = _sections;
 @synthesize locations = _locations;
 
+- (NSDictionary *)sectionedFriends
+{
+    if (!_sectionedFriends) {
+        _sectionedFriends = [NSMutableDictionary dictionary];
+        
+        for (NSDictionary<FBGraphUser> *user in self.friends) {
+            NSString *firstLetter = [user.first_name substringToIndex:1];
+            
+            NSMutableArray *arrayForFirsLetter = [_sectionedFriends objectForKey:firstLetter];
+            if (!arrayForFirsLetter) {
+                arrayForFirsLetter = [NSMutableArray array];
+            }
+            [arrayForFirsLetter addObject:user];
+            [_sectionedFriends setObject:arrayForFirsLetter forKey:firstLetter];
+        }
+    }
+    
+    return _sectionedFriends;
+}
+
+- (NSArray *)sections
+{
+    if (!_sections) {
+        _sections = [self.sectionedFriends.allKeys sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+    }
+    
+    return _sections;
+}
 
 - (void)setFriends:(NSArray *)friends
 {
@@ -32,6 +64,10 @@
     _friends = [friends sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2){
         return [[obj1 objectForKey:@"name"] compare:[obj2 objectForKey:@"name"] options:NSCaseInsensitiveSearch];
     }];
+    
+    // invalidate dependent properties
+    _sectionedFriends = nil;
+    _sections = nil;
 }
 
 - (void)awakeFromNib
@@ -200,19 +236,26 @@
     
 }
 
-// Customize the number of sections in the table view.
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
-{
-    return [[self.fetchedResultsController sections] count];
-}
 
 #pragma mark - UITableViewDataSource & UITableViewDelegate
+
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
+{
+    return [self.sections objectAtIndex:section];
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+//    return [[self.fetchedResultsController sections] count];
+    return self.sections.count;
+}
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
 //    id <NSFetchedResultsSectionInfo> sectionInfo = [[self.fetchedResultsController sections] objectAtIndex:section];
 //    return [sectionInfo numberOfObjects];
-    return self.friends.count;
+    NSString *key = [self.sections objectAtIndex:section];
+    return [[self.sectionedFriends objectForKey:key] count];
 }
 
 // Customize the appearance of table view cells.
@@ -239,7 +282,8 @@
 {
 //    NSManagedObject *managedObject = [self.fetchedResultsController objectAtIndexPath:indexPath];
 
-    NSMutableDictionary<FBGraphUser> *user = [self.friends objectAtIndex:indexPath.row];
+    NSString *key = [self.sections objectAtIndex:indexPath.section];
+    NSMutableDictionary<FBGraphUser> *user = [[self.sectionedFriends objectForKey:key] objectAtIndex:indexPath.row];
     cell.textLabel.text = user.name;
     cell.detailTextLabel.text = user.location.name; // TODO: set last known location
 }
