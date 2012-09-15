@@ -1,23 +1,23 @@
 //
-//  MasterViewController.m
+//  FriendsTableViewController.m
 //  FacebookMap
 //
 //  Created by Tom Kraina on 14.09.2012.
 //  Copyright (c) 2012 tomkraina.com. All rights reserved.
 //
 
-#import "MasterViewController.h"
+#import "FriendsTableViewController.h"
 #import "DetailViewController.h"
 #import "FacebookMapAppDelegate.h"
 #import <FacebookSDK/FacebookSDK.h>
 
-@interface MasterViewController () <UITableViewDataSource, UITableViewDelegate>
+@interface FriendsTableViewController () <UITableViewDataSource, UITableViewDelegate>
 @property (strong, nonatomic) NSArray *friends;
 @property (strong, nonatomic) NSMutableDictionary *locations;
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath;
 @end
 
-@implementation MasterViewController
+@implementation FriendsTableViewController
 
 @synthesize detailViewController = _detailViewController;
 @synthesize fetchedResultsController = __fetchedResultsController;

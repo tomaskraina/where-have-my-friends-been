@@ -1,5 +1,5 @@
 //
-//  MasterViewController.h
+//  FriendsTableViewController.h
 //  FacebookMap
 //
 //  Created by Tom Kraina on 14.09.2012.
@@ -11,7 +11,7 @@
 
 @class DetailViewController;
 
-@interface MasterViewController : UITableViewController <NSFetchedResultsControllerDelegate>
+@interface FriendsTableViewController : UITableViewController <NSFetchedResultsControllerDelegate>
 
 @property (strong, nonatomic) DetailViewController *detailViewController;
 @property (strong, nonatomic) NSFetchedResultsController *fetchedResultsController;

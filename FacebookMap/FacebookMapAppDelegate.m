@@ -7,7 +7,7 @@
 //
 
 #import "FacebookMapAppDelegate.h"
-#import "MasterViewController.h"
+#import "FriendsTableViewController.h"
 #import <FacebookSDK/FacebookSDK.h>
 
 @implementation FacebookMapAppDelegate
@@ -30,7 +30,7 @@
     splitViewController.delegate = (id)navigationController.topViewController;
 
     UINavigationController *masterNavigationController = [splitViewController.viewControllers objectAtIndex:0];
-    MasterViewController *controller = (MasterViewController *)masterNavigationController.topViewController;
+    FriendsTableViewController *controller = (FriendsTableViewController *)masterNavigationController.topViewController;
     controller.managedObjectContext = self.managedObjectContext;
     return YES;
 }
