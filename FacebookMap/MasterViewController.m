@@ -13,6 +13,7 @@
 
 @interface MasterViewController () <UITableViewDataSource, UITableViewDelegate>
 @property (strong, nonatomic) NSArray *friends;
+@property (strong, nonatomic) NSArray *locations;
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath;
 @end
 
@@ -22,11 +23,8 @@
 @synthesize fetchedResultsController = __fetchedResultsController;
 @synthesize managedObjectContext = __managedObjectContext;
 @synthesize friends = _friends;
+@synthesize locations = _locations;
 
-- (void)setFriends:(NSArray *)friends
-{
-    _friends = friends;
-}
 
 - (void)awakeFromNib
 {
@@ -73,6 +71,25 @@
     [FBSession.activeSession closeAndClearTokenInformation];
 }
 
+- (void)fetchFriends
+{
+    [FBSettings setLoggingBehavior:[NSSet setWithObjects:FBLoggingBehaviorFBRequests, nil]];
+    FBRequest *request = [FBRequest requestForMyFriends];
+    FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:30]; // TODO: review the timeout value
+    [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error){
+        if (!error && result) {
+            self.friends = [result objectForKey:@"data"];
+            [self.tableView reloadData];
+        }
+        else {
+            NSLog(@"Error during fetching friends: %@", error);
+            // TODO: show error message
+        }
+    }];
+    
+    [connection start];
+}
+
 #pragma mark - View lifecycle
 
 - (void)viewDidLoad
@@ -117,21 +134,7 @@
         }
         
         // fetch the friends
-        [FBSettings setLoggingBehavior:[NSSet setWithObjects:FBLoggingBehaviorFBRequests, nil]];
-        FBRequest *request = [FBRequest requestForMyFriends];
-        FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:30]; // TODO: review the timeout value
-        [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error){
-            if (!error && result) {
-                self.friends = [result objectForKey:@"data"];
-                [self.tableView reloadData];
-            }
-            else {
-                NSLog(@"Error during fetching friends: %@", error);
-                // TODO: show error message
-            }
-        }];
-        
-        [connection start];
+        [self fetchFriends];
         
     } else {
         // No, display the login page.
