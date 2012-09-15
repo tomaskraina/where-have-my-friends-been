@@ -26,6 +26,14 @@
 @synthesize locations = _locations;
 
 
+- (void)setFriends:(NSArray *)friends
+{
+    // sort array
+    _friends = [friends sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2){
+        return [[obj1 objectForKey:@"name"] compare:[obj2 objectForKey:@"name"] options:NSCaseInsensitiveSearch];
+    }];
+}
+
 - (void)awakeFromNib
 {
     self.clearsSelectionOnViewWillAppear = NO;
