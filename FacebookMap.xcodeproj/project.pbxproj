@@ -18,7 +18,7 @@
 		2CDF6643160386820091D2D4 /* MainStoryboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2CDF6641160386820091D2D4 /* MainStoryboard.storyboard */; };
 		2CDF6646160386820091D2D4 /* FacebookMap.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF6644160386820091D2D4 /* FacebookMap.xcdatamodeld */; };
 		2CDF6649160386820091D2D4 /* FriendsTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF6648160386820091D2D4 /* FriendsTableViewController.m */; };
-		2CDF664C160386820091D2D4 /* DetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF664B160386820091D2D4 /* DetailViewController.m */; };
+		2CDF664C160386820091D2D4 /* MapViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF664B160386820091D2D4 /* MapViewController.m */; };
 		2CDF6653160386B00091D2D4 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CDF6652160386B00091D2D4 /* CoreLocation.framework */; };
 		2CDF6655160386B80091D2D4 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CDF6654160386B80091D2D4 /* MapKit.framework */; };
 		2CDF666F1603BAEB0091D2D4 /* FacebookSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CDF666E1603BAEB0091D2D4 /* FacebookSDK.framework */; };
@@ -47,8 +47,8 @@
 		2CDF6645160386820091D2D4 /* FacebookMap.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = FacebookMap.xcdatamodel; sourceTree = "<group>"; };
 		2CDF6647160386820091D2D4 /* FriendsTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = FriendsTableViewController.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		2CDF6648160386820091D2D4 /* FriendsTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = FriendsTableViewController.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
-		2CDF664A160386820091D2D4 /* DetailViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = DetailViewController.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
-		2CDF664B160386820091D2D4 /* DetailViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = DetailViewController.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
+		2CDF664A160386820091D2D4 /* MapViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = MapViewController.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		2CDF664B160386820091D2D4 /* MapViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = MapViewController.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		2CDF6652160386B00091D2D4 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		2CDF6654160386B80091D2D4 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		2CDF666E1603BAEB0091D2D4 /* FacebookSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FacebookSDK.framework; path = lib/FacebookSDK.framework; sourceTree = "<group>"; };
@@ -122,8 +122,8 @@
 				2CDF6641160386820091D2D4 /* MainStoryboard.storyboard */,
 				2CDF6647160386820091D2D4 /* FriendsTableViewController.h */,
 				2CDF6648160386820091D2D4 /* FriendsTableViewController.m */,
-				2CDF664A160386820091D2D4 /* DetailViewController.h */,
-				2CDF664B160386820091D2D4 /* DetailViewController.m */,
+				2CDF664A160386820091D2D4 /* MapViewController.h */,
+				2CDF664B160386820091D2D4 /* MapViewController.m */,
 				2C3D1FE9160419BC00A36C70 /* PlaceMapAnnotation.h */,
 				2C3D1FEA160419BC00A36C70 /* PlaceMapAnnotation.m */,
 				2CDF667C1603DD8A0091D2D4 /* LogInViewController.h */,
@@ -226,7 +226,7 @@
 				2CDF6640160386820091D2D4 /* FacebookMapAppDelegate.m in Sources */,
 				2CDF6646160386820091D2D4 /* FacebookMap.xcdatamodeld in Sources */,
 				2CDF6649160386820091D2D4 /* FriendsTableViewController.m in Sources */,
-				2CDF664C160386820091D2D4 /* DetailViewController.m in Sources */,
+				2CDF664C160386820091D2D4 /* MapViewController.m in Sources */,
 				2CDF66751603CEDF0091D2D4 /* LocationObject.m in Sources */,
 				2CDF66781603CEDF0091D2D4 /* Friend.m in Sources */,
 				2CDF667B1603CEDF0091D2D4 /* Place.m in Sources */,

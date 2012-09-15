@@ -1,24 +1,24 @@
 //
-//  DetailViewController.m
+//  MapViewController.m
 //  FacebookMap
 //
 //  Created by Tom Kraina on 14.09.2012.
 //  Copyright (c) 2012 tomkraina.com. All rights reserved.
 //
 
-#import "DetailViewController.h"
+#import "MapViewController.h"
 #import "PlaceMapAnnotation.h"
 #import <MapKit/MapKit.h>
 
 
-@interface DetailViewController () <MKMapViewDelegate>
+@interface MapViewController () <MKMapViewDelegate>
 @property (strong, nonatomic) NSMutableDictionary *locations;
 @property (weak, nonatomic) IBOutlet MKMapView *mapView;
 @property (strong, nonatomic) UIPopoverController *masterPopoverController;
 - (void)configureView;
 @end
 
-@implementation DetailViewController
+@implementation MapViewController
 
 @synthesize detailItem = _detailItem;
 @synthesize mapView = _mapView;

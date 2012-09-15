@@ -1,5 +1,5 @@
 //
-//  DetailViewController.h
+//  MapViewController.h
 //  FacebookMap
 //
 //  Created by Tom Kraina on 14.09.2012.
@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 #import <FacebookSDK/FacebookSDK.h>
 
-@interface DetailViewController : UIViewController <UISplitViewControllerDelegate>
+@interface MapViewController : UIViewController <UISplitViewControllerDelegate>
 
 @property (strong, nonatomic) id detailItem;
 

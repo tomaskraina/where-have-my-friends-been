@@ -7,7 +7,7 @@
 //
 
 #import "FriendsTableViewController.h"
-#import "DetailViewController.h"
+#import "MapViewController.h"
 #import "FacebookMapAppDelegate.h"
 #import <FacebookSDK/FacebookSDK.h>
 
@@ -132,7 +132,7 @@
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
-    self.detailViewController = (DetailViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
+    self.detailViewController = (MapViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
 
     // TODO: set up refresh button
     
