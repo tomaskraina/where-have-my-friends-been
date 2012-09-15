@@ -11,7 +11,8 @@
 #import "FacebookMapAppDelegate.h"
 #import <FacebookSDK/FacebookSDK.h>
 
-@interface MasterViewController ()
+@interface MasterViewController () <UITableViewDataSource, UITableViewDelegate>
+@property (strong, nonatomic) NSArray *friends;
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath;
 @end
 
@@ -20,6 +21,12 @@
 @synthesize detailViewController = _detailViewController;
 @synthesize fetchedResultsController = __fetchedResultsController;
 @synthesize managedObjectContext = __managedObjectContext;
+@synthesize friends = _friends;
+
+- (void)setFriends:(NSArray *)friends
+{
+    _friends = friends;
+}
 
 - (void)awakeFromNib
 {
@@ -109,6 +116,23 @@
             [self setUpLogoutButton];
         }
         
+        // fetch the friends
+        [FBSettings setLoggingBehavior:[NSSet setWithObjects:FBLoggingBehaviorFBRequests, nil]];
+        FBRequest *request = [FBRequest requestForMyFriends];
+        FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:30]; // TODO: review the timeout value
+        [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error){
+            if (!error && result) {
+                self.friends = [result objectForKey:@"data"];
+                [self.tableView reloadData];
+            }
+            else {
+                NSLog(@"Error during fetching friends: %@", error);
+                // TODO: show error message
+            }
+        }];
+        
+        [connection start];
+        
     } else {
         // No, display the login page.
         [self showLoginScreen];
@@ -144,62 +168,42 @@
     return [[self.fetchedResultsController sections] count];
 }
 
+#pragma mark - UITableViewDataSource & UITableViewDelegate
+
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    id <NSFetchedResultsSectionInfo> sectionInfo = [[self.fetchedResultsController sections] objectAtIndex:section];
-    return [sectionInfo numberOfObjects];
+//    id <NSFetchedResultsSectionInfo> sectionInfo = [[self.fetchedResultsController sections] objectAtIndex:section];
+//    return [sectionInfo numberOfObjects];
+    return self.friends.count;
 }
 
 // Customize the appearance of table view cells.
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    static NSString *CellIdentifier = @"Cell";
-    
+    static NSString *CellIdentifier = @"Friend Cell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    if (!cell) {
+        // cell didn't load from the storyboard prototype
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
+        // ..
+    }
     [self configureCell:cell atIndexPath:indexPath];
     return cell;
-}
-
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-*/
-
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the managed object for the given index path
-        NSManagedObjectContext *context = [self.fetchedResultsController managedObjectContext];
-        [context deleteObject:[self.fetchedResultsController objectAtIndexPath:indexPath]];
-        
-        // Save the context.
-        NSError *error = nil;
-        if (![context save:&error]) {
-            /*
-             Replace this implementation with code to handle the error appropriately.
-             
-             abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development. 
-             */
-            NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
-            abort();
-        }
-    }   
-}
-
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // The table view should not be re-orderable.
-    return NO;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSManagedObject *selectedObject = [[self fetchedResultsController] objectAtIndexPath:indexPath];
     self.detailViewController.detailItem = selectedObject;    
+}
+
+- (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath
+{
+//    NSManagedObject *managedObject = [self.fetchedResultsController objectAtIndexPath:indexPath];
+
+    NSMutableDictionary<FBGraphUser> *user = [self.friends objectAtIndex:indexPath.row];
+    cell.textLabel.text = user.name;
+    cell.detailTextLabel.text = user.location.name; // TODO: set last known location
 }
 
 #pragma mark - Fetched results controller
@@ -304,12 +308,6 @@
     [self.tableView reloadData];
 }
  */
-
-- (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath
-{
-    NSManagedObject *managedObject = [self.fetchedResultsController objectAtIndexPath:indexPath];
-    cell.textLabel.text = [[managedObject valueForKey:@"timeStamp"] description];
-}
 
 - (void)insertNewObject
 {
