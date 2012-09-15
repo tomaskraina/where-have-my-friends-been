@@ -13,7 +13,7 @@
 
 @interface MasterViewController () <UITableViewDataSource, UITableViewDelegate>
 @property (strong, nonatomic) NSArray *friends;
-@property (strong, nonatomic) NSArray *locations;
+@property (strong, nonatomic) NSMutableDictionary *locations;
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath;
 @end
 
@@ -71,6 +71,32 @@
     [FBSession.activeSession closeAndClearTokenInformation];
 }
 
+- (void)refreshMapWithNewLocations:(NSArray *)locations forUser:(NSDictionary<FBGraphUser> *)user
+{
+    [self.detailViewController addLocations:locations forUser:user];
+}
+
+- (void)fetchLocationsForAllFriends
+{
+    for (NSMutableDictionary<FBGraphUser> *user in self.friends) {
+        FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:15]; // TODO: review the value
+        FBRequest *request = [FBRequest requestForGraphPath:[user.id stringByAppendingString:@"/locations"]];
+        [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
+            if (!error && result) {
+                NSArray *locations = [result objectForKey:@"data"];
+                [self.locations setObject:locations forKey:user.id];
+                [self refreshMapWithNewLocations:locations forUser:user];
+            }
+            else {
+                // TODO: do something with the error
+                NSLog(@"Error during fetching locations: %@", error);
+                
+            }
+        }];
+        [connection start];
+    }
+}
+
 - (void)fetchFriends
 {
     [FBSettings setLoggingBehavior:[NSSet setWithObjects:FBLoggingBehaviorFBRequests, nil]];
@@ -80,6 +106,8 @@
         if (!error && result) {
             self.friends = [result objectForKey:@"data"];
             [self.tableView reloadData];
+            
+            [self fetchLocationsForAllFriends];
         }
         else {
             NSLog(@"Error during fetching friends: %@", error);
@@ -133,7 +161,6 @@
             [self setUpLogoutButton];
         }
         
-        // fetch the friends
         [self fetchFriends];
         
     } else {

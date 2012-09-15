@@ -7,9 +7,12 @@
 //
 
 #import "DetailViewController.h"
+#import "PlaceMapAnnotation.h"
 #import <MapKit/MapKit.h>
 
-@interface DetailViewController ()
+
+@interface DetailViewController () <MKMapViewDelegate>
+@property (strong, nonatomic) NSMutableDictionary *locations;
 @property (weak, nonatomic) IBOutlet MKMapView *mapView;
 @property (strong, nonatomic) UIPopoverController *masterPopoverController;
 - (void)configureView;
@@ -20,8 +23,26 @@
 @synthesize detailItem = _detailItem;
 @synthesize mapView = _mapView;
 @synthesize masterPopoverController = _masterPopoverController;
+@synthesize locations = _locations;
 
 #pragma mark - Managing the detail item
+
+- (void)addLocations:(NSArray *)locations forUser:(NSDictionary<FBGraphUser> *)user;
+{
+    // TODO: prevent duplicates
+    [self.locations setObject:locations forKey:user.id];
+    
+    for (id<FBGraphObject> object in locations) {
+        NSMutableDictionary<FBGraphPlace> *place = [object objectForKey:@"place"];
+        NSMutableDictionary<FBGraphLocation> *location = (NSMutableDictionary<FBGraphLocation> *)place.location;
+        
+        if (![location respondsToSelector:@selector(latitude)] || ![location respondsToSelector:@selector(longitude)]) continue;
+        
+        CLLocationCoordinate2D coordinates = CLLocationCoordinate2DMake([location.latitude doubleValue], [location.longitude doubleValue]);
+        PlaceMapAnnotation *annotation = [[PlaceMapAnnotation alloc] initWithTitle:user.name subtitle:place.name coordinate:coordinates info:nil];
+        [self.mapView addAnnotation:annotation];
+    }
+}
 
 - (void)setDetailItem:(id)newDetailItem
 {
@@ -106,6 +127,46 @@
     // Called when the view is shown again in the split view, invalidating the button and popover controller.
     [self.navigationItem setLeftBarButtonItem:nil animated:YES];
     self.masterPopoverController = nil;
+}
+
+#pragma mark - MKMapViewDelegate
+
+- (MKAnnotationView *)mapView:(MKMapView *)mapView viewForAnnotation:(id <MKAnnotation>)annotation
+{
+    static NSString *Identifier = @"Place Annotation";
+    MKAnnotationView *annotationView = [mapView dequeueReusableAnnotationViewWithIdentifier:Identifier];
+    if (!annotationView) {
+        annotationView = [[MKPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:Identifier];
+        annotationView.rightCalloutAccessoryView = [UIButton buttonWithType:UIButtonTypeDetailDisclosure];
+        annotationView.canShowCallout = YES;
+    }
+    
+    return annotationView;
+}
+
+- (void)mapView:(MKMapView *)mapView didSelectAnnotationView:(MKAnnotationView *)view
+{
+    
+}
+
+- (void)mapView:(MKMapView *)mapView annotationView:(MKAnnotationView *)view calloutAccessoryControlTapped:(UIControl *)control
+{
+    // fire segue
+//    [self performSegueWithIdentifier:@"Show photos at location" sender:view];
+    
+}
+
+- (void)mapView:(MKMapView *)mapView didAddAnnotationViews:(NSArray *)views
+{
+//    if (self.selectedPlace) {
+//        for (MKAnnotationView *view in views) {
+//            MapAnnotation *annotation = (MapAnnotation *)view.annotation;
+//            if ([annotation.infoDictionary isEqualToDictionary:self.selectedPlace]) {
+//                [self.mapView selectAnnotation:annotation animated:YES];
+//                break;
+//            }
+//        }
+//    }
 }
 
 @end

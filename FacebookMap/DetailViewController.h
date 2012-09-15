@@ -7,9 +7,12 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <FacebookSDK/FacebookSDK.h>
 
 @interface DetailViewController : UIViewController <UISplitViewControllerDelegate>
 
 @property (strong, nonatomic) id detailItem;
+
+- (void)addLocations:(NSArray *)locations forUser:(NSDictionary<FBGraphUser> *)user;
 
 @end

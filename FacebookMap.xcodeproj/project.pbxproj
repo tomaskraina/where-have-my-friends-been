@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2C3D1FEB160419BC00A36C70 /* PlaceMapAnnotation.m in Sources */ = {isa = PBXBuildFile; fileRef = 2C3D1FEA160419BC00A36C70 /* PlaceMapAnnotation.m */; };
 		2CDF662E160386820091D2D4 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CDF662D160386820091D2D4 /* UIKit.framework */; };
 		2CDF6630160386820091D2D4 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CDF662F160386820091D2D4 /* Foundation.framework */; };
 		2CDF6632160386820091D2D4 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CDF6631160386820091D2D4 /* CoreGraphics.framework */; };
@@ -29,6 +30,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2C3D1FE9160419BC00A36C70 /* PlaceMapAnnotation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlaceMapAnnotation.h; sourceTree = "<group>"; };
+		2C3D1FEA160419BC00A36C70 /* PlaceMapAnnotation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlaceMapAnnotation.m; sourceTree = "<group>"; };
 		2CDF6629160386820091D2D4 /* FacebookMap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FacebookMap.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2CDF662D160386820091D2D4 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		2CDF662F160386820091D2D4 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -121,6 +124,8 @@
 				2CDF6648160386820091D2D4 /* MasterViewController.m */,
 				2CDF664A160386820091D2D4 /* DetailViewController.h */,
 				2CDF664B160386820091D2D4 /* DetailViewController.m */,
+				2C3D1FE9160419BC00A36C70 /* PlaceMapAnnotation.h */,
+				2C3D1FEA160419BC00A36C70 /* PlaceMapAnnotation.m */,
 				2CDF667C1603DD8A0091D2D4 /* LogInViewController.h */,
 				2CDF667D1603DD8A0091D2D4 /* LogInViewController.m */,
 				2CDF6636160386820091D2D4 /* Supporting Files */,
@@ -226,6 +231,7 @@
 				2CDF66781603CEDF0091D2D4 /* Friend.m in Sources */,
 				2CDF667B1603CEDF0091D2D4 /* Place.m in Sources */,
 				2CDF667E1603DD8A0091D2D4 /* LogInViewController.m in Sources */,
+				2C3D1FEB160419BC00A36C70 /* PlaceMapAnnotation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
