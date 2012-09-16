@@ -32,7 +32,6 @@
     // TODO: prevent duplicates
     [self.locations setObject:locations forKey:user.id];
     
-    NSMutableArray *anntations = [NSMutableArray array];
     for (id<FBGraphObject> object in locations) {
         NSMutableDictionary<FBGraphPlace> *place = [object objectForKey:@"place"];
         NSMutableDictionary<FBGraphLocation> *location = (NSMutableDictionary<FBGraphLocation> *)place.location;
@@ -42,11 +41,10 @@
         
         CLLocationCoordinate2D coordinates = CLLocationCoordinate2DMake([location.latitude doubleValue], [location.longitude doubleValue]);
         PlaceMapAnnotation *annotation = [[PlaceMapAnnotation alloc] initWithTitle:user.name subtitle:place.name coordinate:coordinates info:nil];
-        [anntations addObject:annotation];
+
+        // adding just one annotation is a little bit faster than doing it in a batch
+        [self.mapView addAnnotation:annotation];
     }
-    
-    // batch addition of annotations
-   [self.mapView addAnnotations:anntations];
 }
 
 - (void)setDetailItem:(id)newDetailItem
