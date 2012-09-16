@@ -16,7 +16,7 @@
     // TODO: spinner maybe?
     
     FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-    [appDelegate facebookOpenSession];
+    [appDelegate facebookOpenSessionWithAllowLoginUI:YES];
 }
 
 - (void)loginFailed

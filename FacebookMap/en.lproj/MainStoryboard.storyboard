@@ -42,6 +42,7 @@
                     <navigationItem key="navigationItem" title="Map" id="53"/>
                     <connections>
                         <outlet property="mapView" destination="aR5-Wb-4aX" id="sur-ay-BBU"/>
+                        <segue destination="iXr-oB-48x" kind="modal" identifier="login" modalPresentationStyle="formSheet" id="Df8-f2-cwF"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="15" sceneMemberID="firstResponder"/>
@@ -109,9 +110,6 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" title="Friends" id="40"/>
-                    <connections>
-                        <segue destination="iXr-oB-48x" kind="modal" identifier="login" modalPresentationStyle="formSheet" id="t2c-OL-me7"/>
-                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="23" sceneMemberID="firstResponder"/>
             </objects>
@@ -154,7 +152,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="bZV-DL-6aV" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1504" y="-556"/>
+            <point key="canvasLocation" x="1292" y="322"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="50">

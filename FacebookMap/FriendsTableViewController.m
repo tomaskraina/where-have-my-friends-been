@@ -61,10 +61,12 @@
 
 - (void)setFriends:(NSArray *)friends
 {
-    _friends = friends;
-    
-    // invalidate dependent properties
-    _sectionedFriends = nil;
+    if (_friends != friends) {
+        _friends = friends;
+        
+        // invalidate dependent properties
+        _sectionedFriends = nil;
+    }
 }
 
 - (void)awakeFromNib
@@ -80,36 +82,16 @@
     // Release any cached data, images, etc that aren't in use.
 }
 
-- (void)showLoginScreen
-{
-    [self performSegueWithIdentifier:@"login" sender:self];
-}
-
 - (void)setUpLogoutButton
 {
     UIBarButtonItem *logoutButton = [[UIBarButtonItem alloc] initWithTitle:@"Logout" style:UIBarButtonItemStyleBordered target:self action:@selector(performLogout:)];
     self.navigationItem.leftBarButtonItem = logoutButton;
 }
 
-- (void)facebookDidLogOut:(id)sender
-{
-    // hide the logout button
-    self.navigationItem.leftBarButtonItem = nil;
-    
-    [self showLoginScreen];
-}
-
-- (void)facebookDidLogIn:(id)sender
-{
-    // dismiss login view
-    [self dismissModalViewControllerAnimated:YES];
-    
-    [self setUpLogoutButton];
-}
-
 - (void)performLogout:(id)sender
 {
-    [FBSession.activeSession closeAndClearTokenInformation];
+    FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+    [appDelegate facebookCloseSession];
 }
 
 - (void)refreshMapWithNewLocations:(NSArray *)locations forUser:(NSDictionary<FBGraphUser> *)user
@@ -160,6 +142,26 @@
     [connection start];
 }
 
+- (void)facebookSessionStateChanged:(NSNotification*)notification {
+    if (FBSession.activeSession.isOpen) {
+        [self fetchFriends];
+        
+        // Show the logout button
+        if (!self.navigationItem.leftBarButtonItem) {
+            [self setUpLogoutButton];
+        }
+    } else {
+        // hide the logout button
+        self.navigationItem.leftBarButtonItem = nil;
+        
+        // delete friends list
+        self.friends = nil;
+        [self.tableView reloadData];
+        
+        // TODO: stop all running requests
+    }
+}
+
 #pragma mark - View lifecycle
 
 - (void)viewDidLoad
@@ -174,8 +176,7 @@
     self.collation = [UILocalizedIndexedCollation currentCollation];
     
     // Register for notifications
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(facebookDidLogIn:) name:@"FBSessionStateOpenNotification" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(facebookDidLogOut:) name:@"FBSessionStateClosedNotification" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(facebookSessionStateChanged:) name:FBSessionStateChangedNotification object:nil];
 }
 
 - (void)viewDidUnload
@@ -193,25 +194,6 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    
-    // See if we have a valid token for the current state.
-    if (FBSession.activeSession.state == FBSessionStateCreatedTokenLoaded) {
-        // Yes, so just open the session (this won't display any UX).
-        // TODO: refactor, this is an antipattern
-        FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-        [appDelegate facebookOpenSession];
-        
-        // Show the logout button
-        if (!self.navigationItem.leftBarButtonItem) {
-            [self setUpLogoutButton];
-        }
-        
-        [self fetchFriends];
-        
-    } else {
-        // No, display the login page.
-        [self showLoginScreen];
-    }
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -228,13 +210,6 @@
 {
     // Return YES for supported orientations
     return YES;
-}
-
-#pragma mark - UIStoryboardSegue
-
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
-{
-    
 }
 
 

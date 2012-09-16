@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
+extern NSString *const FBSessionStateChangedNotification;
+
 @interface FacebookMapAppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
@@ -19,6 +21,7 @@
 - (void)saveContext;
 - (NSURL *)applicationDocumentsDirectory;
 
-- (void)facebookOpenSession;
+- (void)facebookOpenSessionWithAllowLoginUI:(BOOL)allowLoginUI;
+- (void)facebookCloseSession;
 
 @end

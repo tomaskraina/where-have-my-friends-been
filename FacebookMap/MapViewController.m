@@ -9,6 +9,7 @@
 #import "MapViewController.h"
 #import "PlaceMapAnnotation.h"
 #import <MapKit/MapKit.h>
+#import "FacebookMapAppDelegate.h"
 
 
 @interface MapViewController () <MKMapViewDelegate>
@@ -73,6 +74,33 @@
     // Release any cached data, images, etc that aren't in use.
 }
 
+#pragma mark - Facebook
+
+- (void)showLoginScreen
+{
+    [self performSegueWithIdentifier:@"login" sender:self];
+}
+
+- (void)facebookSessionStateChanged:(NSNotification*)notification {
+    if (FBSession.activeSession.isOpen) {
+        [self dismissModalViewControllerAnimated:YES];
+    } else {
+        [self showLoginScreen];
+        
+        // TODO: stop all running requests
+        
+        // delete anotations on the map
+        [self.mapView removeAnnotations:self.mapView.annotations];
+    }
+}
+
+#pragma mark - UIStoryboardSegue
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+{
+    
+}
+
 #pragma mark - View lifecycle
 
 - (void)viewDidLoad
@@ -80,14 +108,21 @@
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
     [self configureView];
+    
+    // Register for notifications
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(facebookSessionStateChanged:) name:FBSessionStateChangedNotification object:nil];
+    
+    // Check the session for a cached token to show the proper authenticated
+    // UI. However, since this is not user intitiated, do not show the login UX.
+    FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+    [appDelegate facebookOpenSessionWithAllowLoginUI:NO];
 }
 
 - (void)viewDidUnload
 {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     [self setMapView:nil];
     [super viewDidUnload];
-    // Release any retained subviews of the main view.
-    // e.g. self.myOutlet = nil;
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -98,6 +133,11 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
+    
+    // See if we have a open session
+    if (!FBSession.activeSession.isOpen) {
+        [self showLoginScreen];
+    }
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -120,7 +160,7 @@
 
 - (void)splitViewController:(UISplitViewController *)splitController willHideViewController:(UIViewController *)viewController withBarButtonItem:(UIBarButtonItem *)barButtonItem forPopoverController:(UIPopoverController *)popoverController
 {
-    barButtonItem.title = NSLocalizedString(@"Master", @"Master");
+    barButtonItem.title = NSLocalizedString(@"Friends", @"Friends");
     [self.navigationItem setLeftBarButtonItem:barButtonItem animated:YES];
     self.masterPopoverController = popoverController;
 }

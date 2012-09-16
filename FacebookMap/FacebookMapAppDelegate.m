@@ -10,6 +10,8 @@
 #import "FriendsTableViewController.h"
 #import <FacebookSDK/FacebookSDK.h>
 
+NSString *const FBSessionStateChangedNotification = @"com.tomkraina.FacebookMap:FBSessionStateChangedNotification";
+
 @implementation FacebookMapAppDelegate
 
 @synthesize window = _window;
@@ -17,8 +19,13 @@
 @synthesize managedObjectModel = __managedObjectModel;
 @synthesize persistentStoreCoordinator = __persistentStoreCoordinator;
 
+/*
+ * If we have a valid session at the time of openURL call, we handle
+ * Facebook transitions by passing the url argument to handleOpenURL
+ */
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation 
 {
+    // attempt to extract a token from the url
     return [FBSession.activeSession handleOpenURL:url]; 
 }
 
@@ -75,6 +82,9 @@
 {
     // Saves changes in the application's managed object context before the application terminates.
     [self saveContext];
+    
+    // close facebook session
+    [FBSession.activeSession close];
 }
 
 - (void)saveContext
@@ -196,22 +206,24 @@
 
 #pragma mark - Facebook
 
-- (void)facebookSessionStateChanged:(FBSession *)session 
-                      state:(FBSessionState) state
-                      error:(NSError *)error
+- (void)facebookSessionStateChanged:(FBSession *)session state:(FBSessionState)state error:(NSError *)error
 {
     switch (state) {
         case FBSessionStateOpen:
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"FBSessionStateOpenNotification" object:self];
+            if (!error) {
+                // We have a valid session
+                NSLog(@"User session found");
+            }
             break;
         case FBSessionStateClosed:
         case FBSessionStateClosedLoginFailed:
             [FBSession.activeSession closeAndClearTokenInformation];
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"FBSessionStateClosedNotification" object:self];
             break;
         default:
             break;
     }
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:FBSessionStateChangedNotification object:session];
     
     if (error) {
         UIAlertView *alertView = [[UIAlertView alloc]
@@ -224,16 +236,17 @@
     }    
 }
 
-- (void)facebookOpenSession
+- (void)facebookOpenSessionWithAllowLoginUI:(BOOL)allowLoginUI;
 {
     NSArray *permissions = [NSArray arrayWithObjects:@"friends_status", @"friends_photos", @"friends_hometown", @"friends_location",  nil];
-    [FBSession openActiveSessionWithPermissions:permissions
-                                   allowLoginUI:YES
-                              completionHandler:
-     ^(FBSession *session, 
-       FBSessionState state, NSError *error) {
+    [FBSession openActiveSessionWithPermissions:permissions allowLoginUI:allowLoginUI completionHandler:
+     ^(FBSession *session, FBSessionState state, NSError *error) {
          [self facebookSessionStateChanged:session state:state error:error];
      }];    
+}
+
+- (void) facebookCloseSession {
+    [FBSession.activeSession closeAndClearTokenInformation];
 }
 
 @end
