@@ -13,9 +13,9 @@
 
 @interface FriendsTableViewController () <UITableViewDataSource, UITableViewDelegate>
 @property (strong, nonatomic) NSArray *friends;
-@property (strong, nonatomic, readonly) NSMutableDictionary *sectionedFriends;
-@property (strong, nonatomic, readonly) NSArray *sections;
+@property (strong, nonatomic, readonly) NSArray *sectionedFriends;
 @property (strong, nonatomic) NSMutableDictionary *locations;
+@property (strong, nonatomic) UILocalizedIndexedCollation *collation;
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath;
 @end
 
@@ -26,48 +26,45 @@
 @synthesize managedObjectContext = __managedObjectContext;
 @synthesize friends = _friends;
 @synthesize sectionedFriends = _sectionedFriends;
-@synthesize sections = _sections;
 @synthesize locations = _locations;
+@synthesize collation = _collation;
 
-- (NSDictionary *)sectionedFriends
+- (NSArray *)sectionedFriends
 {
     if (!_sectionedFriends) {
-        _sectionedFriends = [NSMutableDictionary dictionary];
+        NSInteger sectionCount = [[self.collation sectionTitles] count];
+        NSMutableArray *unsortedSections = [NSMutableArray arrayWithCapacity:sectionCount];
         
-        for (NSDictionary<FBGraphUser> *user in self.friends) {
-            NSString *firstLetter = [user.first_name substringToIndex:1];
-            
-            NSMutableArray *arrayForFirsLetter = [_sectionedFriends objectForKey:firstLetter];
-            if (!arrayForFirsLetter) {
-                arrayForFirsLetter = [NSMutableArray array];
-            }
-            [arrayForFirsLetter addObject:user];
-            [_sectionedFriends setObject:arrayForFirsLetter forKey:firstLetter];
+        // create an array to hold the date for each section
+        for (NSInteger i = 0; i < sectionCount; i++) {
+            [unsortedSections addObject:[NSMutableArray array]];
         }
+        
+        // put each model object into a section
+        for (NSMutableArray<FBGraphUser> *user in self.friends) {
+            NSInteger sectionIndex = [self.collation sectionForObject:user collationStringSelector:@selector(name)];
+            [[unsortedSections objectAtIndex:sectionIndex] addObject:user];
+        }
+        
+        // sort each section
+        NSMutableArray *sections = [NSMutableArray arrayWithCapacity:sectionCount];
+        for (NSArray *section in unsortedSections) {
+            [sections addObject:[self.collation sortedArrayFromArray:section collationStringSelector:@selector(name)]];
+        }
+        
+        _sectionedFriends = sections;
     }
     
     return _sectionedFriends;
 }
 
-- (NSArray *)sections
-{
-    if (!_sections) {
-        _sections = [self.sectionedFriends.allKeys sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
-    }
-    
-    return _sections;
-}
 
 - (void)setFriends:(NSArray *)friends
 {
-    // sort array
-    _friends = [friends sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2){
-        return [[obj1 objectForKey:@"name"] compare:[obj2 objectForKey:@"name"] options:NSCaseInsensitiveSearch];
-    }];
+    _friends = friends;
     
     // invalidate dependent properties
     _sectionedFriends = nil;
-    _sections = nil;
 }
 
 - (void)awakeFromNib
@@ -173,6 +170,9 @@
 
     // TODO: set up refresh button
     
+    // Collation object
+    self.collation = [UILocalizedIndexedCollation currentCollation];
+    
     // Register for notifications
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(facebookDidLogIn:) name:@"FBSessionStateOpenNotification" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(facebookDidLogOut:) name:@"FBSessionStateClosedNotification" object:nil];
@@ -242,21 +242,27 @@
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
-    return [self.sections objectAtIndex:section];
+//    return [self.sections objectAtIndex:section];
+
+    BOOL showSection = [[self.sectionedFriends objectAtIndex:section] count] != 0;
+    //only show the section title if there are rows in the section
+    return (showSection) ? [self.collation.sectionTitles objectAtIndex:section] : nil;
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
 //    return [[self.fetchedResultsController sections] count];
-    return self.sections.count;
+//    return self.sections.count;
+    return self.collation.sectionTitles.count;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
 //    id <NSFetchedResultsSectionInfo> sectionInfo = [[self.fetchedResultsController sections] objectAtIndex:section];
 //    return [sectionInfo numberOfObjects];
-    NSString *key = [self.sections objectAtIndex:section];
-    return [[self.sectionedFriends objectForKey:key] count];
+//    NSString *key = [self.sections objectAtIndex:section];
+//    return [[self.sectionedFriends objectForKey:key] count];
+    return [[self.sectionedFriends objectAtIndex:section] count];
 }
 
 // Customize the appearance of table view cells.
@@ -275,19 +281,31 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSManagedObject *selectedObject = [[self fetchedResultsController] objectAtIndexPath:indexPath];
-    self.detailViewController.detailItem = selectedObject;    
+//    NSManagedObject *selectedObject = [[self fetchedResultsController] objectAtIndexPath:indexPath];
+//    self.detailViewController.detailItem = selectedObject;
 }
 
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath
 {
 //    NSManagedObject *managedObject = [self.fetchedResultsController objectAtIndexPath:indexPath];
 
-    NSString *key = [self.sections objectAtIndex:indexPath.section];
-    NSMutableDictionary<FBGraphUser> *user = [[self.sectionedFriends objectForKey:key] objectAtIndex:indexPath.row];
+    NSMutableDictionary<FBGraphUser> *user = [[self.sectionedFriends objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
     cell.textLabel.text = user.name;
     cell.detailTextLabel.text = user.location.name; // TODO: set last known location
 }
+
+- (NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView
+{
+    return self.collation.sectionIndexTitles;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView sectionForSectionIndexTitle:(NSString *)title atIndex:(NSInteger)index
+{
+    //sectionForSectionIndexTitleAtIndex: is a bit buggy, but is still useable
+    return [self.collation sectionForSectionIndexTitleAtIndex:index];
+}
+
+
 
 #pragma mark - Fetched results controller
 
