@@ -108,7 +108,6 @@
         FBRequest *request = [FBRequest requestForGraphPath:[user.id stringByAppendingString:@"/locations"]];
         [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
             if (!error && result) {
-                [TestFlight passCheckpoint:@"locations fetched"];
                 NSArray *locations = [result objectForKey:@"data"];
                 [allLocations setObject:locations forKey:user.id];
                 [self refreshMapWithNewLocations:locations forUser:user];
