@@ -27,6 +27,8 @@
 		2CDF66781603CEDF0091D2D4 /* Friend.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF66771603CEDF0091D2D4 /* Friend.m */; };
 		2CDF667B1603CEDF0091D2D4 /* Place.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF667A1603CEDF0091D2D4 /* Place.m */; };
 		2CDF667E1603DD8A0091D2D4 /* LogInViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF667D1603DD8A0091D2D4 /* LogInViewController.m */; };
+		9C79EE271606647B0096C5D4 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C79EE261606647B0096C5D4 /* libz.dylib */; };
+		9C79EE2D1606705B0096C5D4 /* libTestFlight.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C79EE291606705B0096C5D4 /* libTestFlight.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -61,6 +63,11 @@
 		2CDF667A1603CEDF0091D2D4 /* Place.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Place.m; sourceTree = "<group>"; };
 		2CDF667C1603DD8A0091D2D4 /* LogInViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LogInViewController.h; sourceTree = "<group>"; };
 		2CDF667D1603DD8A0091D2D4 /* LogInViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogInViewController.m; sourceTree = "<group>"; };
+		9C79EE261606647B0096C5D4 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
+		9C79EE291606705B0096C5D4 /* libTestFlight.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libTestFlight.a; sourceTree = "<group>"; };
+		9C79EE2A1606705B0096C5D4 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+		9C79EE2B1606705B0096C5D4 /* release_notes.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = release_notes.md; sourceTree = "<group>"; };
+		9C79EE2C1606705B0096C5D4 /* TestFlight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestFlight.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +82,8 @@
 				2CDF6632160386820091D2D4 /* CoreGraphics.framework in Frameworks */,
 				2CDF6634160386820091D2D4 /* CoreData.framework in Frameworks */,
 				2CDF666F1603BAEB0091D2D4 /* FacebookSDK.framework in Frameworks */,
+				9C79EE271606647B0096C5D4 /* libz.dylib in Frameworks */,
+				9C79EE2D1606705B0096C5D4 /* libTestFlight.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -101,6 +110,8 @@
 		2CDF662C160386820091D2D4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				9C79EE281606705B0096C5D4 /* TestFlightSDK */,
+				9C79EE261606647B0096C5D4 /* libz.dylib */,
 				2CDF66701603BAF70091D2D4 /* FacebookSDKResources.bundle */,
 				2CDF666E1603BAEB0091D2D4 /* FacebookSDK.framework */,
 				2CDF6654160386B80091D2D4 /* MapKit.framework */,
@@ -156,6 +167,18 @@
 				2CDF6644160386820091D2D4 /* FacebookMap.xcdatamodeld */,
 			);
 			name = Model;
+			sourceTree = "<group>";
+		};
+		9C79EE281606705B0096C5D4 /* TestFlightSDK */ = {
+			isa = PBXGroup;
+			children = (
+				9C79EE291606705B0096C5D4 /* libTestFlight.a */,
+				9C79EE2A1606705B0096C5D4 /* README.md */,
+				9C79EE2B1606705B0096C5D4 /* release_notes.md */,
+				9C79EE2C1606705B0096C5D4 /* TestFlight.h */,
+			);
+			name = TestFlightSDK;
+			path = lib/TestFlightSDK;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -322,6 +345,10 @@
 				GCC_PREFIX_HEADER = "FacebookMap/FacebookMap-Prefix.pch";
 				GCC_VERSION = "";
 				INFOPLIST_FILE = "FacebookMap/FacebookMap-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/lib/TestFlightSDK\"",
+				);
 				OTHER_LDFLAGS = "-lsqlite3.0";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
@@ -342,6 +369,10 @@
 				GCC_PREFIX_HEADER = "FacebookMap/FacebookMap-Prefix.pch";
 				GCC_VERSION = "";
 				INFOPLIST_FILE = "FacebookMap/FacebookMap-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/lib/TestFlightSDK\"",
+				);
 				OTHER_LDFLAGS = "-lsqlite3.0";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";

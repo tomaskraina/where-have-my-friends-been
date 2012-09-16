@@ -74,8 +74,12 @@
     // Release any cached data, images, etc that aren't in use.
 }
 
-#pragma mark - Facebook
+#pragma mark - TestFlight
+- (IBAction)launchFeedback {
+    [TestFlight openFeedbackView];
+}
 
+#pragma mark - Facebook
 - (void)showLoginScreen
 {
     [self performSegueWithIdentifier:@"login" sender:self];

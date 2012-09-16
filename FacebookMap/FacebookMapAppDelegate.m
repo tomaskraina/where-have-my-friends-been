@@ -31,6 +31,13 @@ NSString *const FBSessionStateChangedNotification = @"com.tomkraina.FacebookMap:
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    #define TESTING 1
+    #ifdef TESTING
+        [TestFlight setDeviceIdentifier:[[UIDevice currentDevice] uniqueIdentifier]];
+    #endif
+    
+    [TestFlight takeOff:@"6f173bb30d4011f1c593d4d4dec1b871_MTMyNTU2MjAxMi0wOS0xNSAxNDozOToyNC4zNzg2NzE"];
+    
     // Override point for customization after application launch.
     UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
     UINavigationController *navigationController = [splitViewController.viewControllers lastObject];

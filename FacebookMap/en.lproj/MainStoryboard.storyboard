@@ -39,7 +39,13 @@
                         <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
                     </view>
                     <toolbarItems/>
-                    <navigationItem key="navigationItem" title="Map" id="53"/>
+                    <navigationItem key="navigationItem" title="Map" id="53">
+                        <barButtonItem key="rightBarButtonItem" title="Umm, I think..." id="rHg-VR-rDe">
+                            <connections>
+                                <action selector="launchFeedback" destination="4" id="KG2-si-41P"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
                         <outlet property="mapView" destination="aR5-Wb-4aX" id="sur-ay-BBU"/>
                         <segue destination="iXr-oB-48x" kind="modal" identifier="login" modalPresentationStyle="formSheet" id="Df8-f2-cwF"/>

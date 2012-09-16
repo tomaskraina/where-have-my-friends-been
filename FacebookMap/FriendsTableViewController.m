@@ -90,6 +90,7 @@
 
 - (void)performLogout:(id)sender
 {
+    [TestFlight passCheckpoint:@"tap logout"];
     FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
     [appDelegate facebookCloseSession];
 }
@@ -107,6 +108,7 @@
         FBRequest *request = [FBRequest requestForGraphPath:[user.id stringByAppendingString:@"/locations"]];
         [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
             if (!error && result) {
+                [TestFlight passCheckpoint:@"locations fetched"];
                 NSArray *locations = [result objectForKey:@"data"];
                 [allLocations setObject:locations forKey:user.id];
                 [self refreshMapWithNewLocations:locations forUser:user];
@@ -123,11 +125,13 @@
 
 - (void)fetchFriends
 {
-    [FBSettings setLoggingBehavior:[NSSet setWithObjects:FBLoggingBehaviorFBRequests, nil]];
+//    [FBSettings setLoggingBehavior:[NSSet setWithObjects:FBLoggingBehaviorFBRequests, nil]];
     FBRequest *request = [FBRequest requestForMyFriends];
     FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:30]; // TODO: review the timeout value
     [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error){
         if (!error && result) {
+            [TestFlight passCheckpoint:@"friends fetched"];
+            
             self.friends = [result objectForKey:@"data"];
             [self.tableView reloadData];
             
