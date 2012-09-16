@@ -10,7 +10,7 @@
 #import "PlaceMapAnnotation.h"
 #import <MapKit/MapKit.h>
 #import "FacebookMapAppDelegate.h"
-
+#import "TestFlight.h"
 
 @interface MapViewController () <MKMapViewDelegate>
 @property (strong, nonatomic) NSMutableDictionary *locations;
