@@ -14,5 +14,6 @@
 @property (strong, nonatomic) id detailItem;
 
 - (void)addLocations:(NSArray *)locations forUser:(NSDictionary<FBGraphUser> *)user;
+- (void)startDownloadingLocationsForUsers:(NSArray *)users;
 
 @end

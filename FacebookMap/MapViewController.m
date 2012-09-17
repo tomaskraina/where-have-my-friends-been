@@ -16,6 +16,8 @@
 @property (strong, nonatomic) NSMutableDictionary *locations;
 @property (weak, nonatomic) IBOutlet MKMapView *mapView;
 @property (strong, nonatomic) UIPopoverController *masterPopoverController;
+@property (weak, nonatomic) IBOutlet UIView *loadingView;
+@property (nonatomic) NSInteger numberOfRunningRequests;
 - (void)configureView;
 @end
 
@@ -25,13 +27,66 @@
 @synthesize mapView = _mapView;
 @synthesize masterPopoverController = _masterPopoverController;
 @synthesize locations = _locations;
+@synthesize numberOfRunningRequests = _numberOfRunningRequests;
 
 #pragma mark - Managing the detail item
 
-- (void)addLocations:(NSArray *)locations forUser:(NSDictionary<FBGraphUser> *)user;
+- (void)startDownloadingLocationsForUsers:(NSArray *)users
+{
+    // show loading view
+    static NSTimeInterval AnimationDuration = 1;
+    [UIView transitionWithView:self.loadingView duration:AnimationDuration options:UIViewAnimationOptionLayoutSubviews animations:^{
+//        self.loadingView.alpha = 1;
+        CGRect frame = self.loadingView.frame;
+        frame.origin.y += frame.size.height;
+        self.loadingView.frame = frame;
+    } completion:nil];
+    
+//    NSMutableDictionary *allLocations = self.locations;
+    self.numberOfRunningRequests = 0;
+    for (NSMutableDictionary<FBGraphUser> *user in users) {
+        FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:15]; // TODO: review the value
+        FBRequest *request = [FBRequest requestForGraphPath:[user.id stringByAppendingString:@"/locations"]];
+        [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
+            if (!error && result) {
+                NSArray *locations = [result objectForKey:@"data"];
+//                [allLocations setObject:locations forKey:user.id];
+                [user setObject:locations forKey:@"locations"];
+                [self addLocations:locations forUser:user];
+            }
+            else {
+                // TODO: do something with the error
+                NSLog(@"Error during fetching locations: %@", error);
+            }
+            
+            // hide loading view
+            if (--self.numberOfRunningRequests == 0) {
+                [UIView transitionWithView:self.loadingView duration:AnimationDuration options:UIViewAnimationOptionLayoutSubviews animations:^{
+                    CGRect frame = self.loadingView.frame;
+                    frame.origin.y -= frame.size.height;
+                    self.loadingView.frame = frame;
+                } completion:^(BOOL finished){
+                    if (finished) {
+//                        self.loadingView.alpha = 0;
+                        
+                        // set the original position
+//                        CGRect frame = self.loadingView.frame;
+//                        frame.origin.y = 0;
+//                        self.loadingView.frame = frame;
+                    }
+                }];
+            }
+        }];
+        [connection start];
+        self.numberOfRunningRequests++;
+    }
+}
+
+- (void)addLocations:(NSArray *)locations forUser:(NSDictionary<FBGraphUser> *)user
 {
     // TODO: prevent duplicates
-    [self.locations setObject:locations forKey:user.id];
+//    [self.locations setObject:locations forKey:user.id];
+    [user setObject:locations forKey:@"locations"];
     
     for (id<FBGraphObject> object in locations) {
         NSMutableDictionary<FBGraphPlace> *place = [object objectForKey:@"place"];
@@ -126,6 +181,7 @@
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [self setMapView:nil];
+    [self setLoadingView:nil];
     [super viewDidUnload];
 }
 

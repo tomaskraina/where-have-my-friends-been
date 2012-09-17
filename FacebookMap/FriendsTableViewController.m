@@ -120,24 +120,7 @@
 
 - (void)fetchLocationsForAllFriends
 {
-    NSMutableDictionary *allLocations = self.locations;
-    for (NSMutableDictionary<FBGraphUser> *user in self.friends) {
-        FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:15]; // TODO: review the value
-        FBRequest *request = [FBRequest requestForGraphPath:[user.id stringByAppendingString:@"/locations"]];
-        [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
-            if (!error && result) {
-                NSArray *locations = [result objectForKey:@"data"];
-                [allLocations setObject:locations forKey:user.id];
-                [self refreshMapWithNewLocations:locations forUser:user];
-            }
-            else {
-                // TODO: do something with the error
-                NSLog(@"Error during fetching locations: %@", error);
-                
-            }
-        }];
-        [connection start];
-    }
+    [self.detailViewController startDownloadingLocationsForUsers:self.friends];
 }
 
 - (void)fetchFriends
