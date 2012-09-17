@@ -98,7 +98,7 @@
 - (void)setUpLogoutButton
 {
     UIBarButtonItem *logoutButton = [[UIBarButtonItem alloc] initWithTitle:@"Logout" style:UIBarButtonItemStyleBordered target:self action:@selector(performLogout:)];
-    self.navigationItem.leftBarButtonItem = logoutButton;
+    self.navigationItem.rightBarButtonItem = logoutButton;
 }
 
 - (void)performLogout:(id)sender
@@ -163,12 +163,12 @@
         [self fetchFriends];
         
         // Show the logout button
-        if (!self.navigationItem.leftBarButtonItem) {
+        if (!self.navigationItem.rightBarButtonItem) {
             [self setUpLogoutButton];
         }
     } else {
         // hide the logout button
-        self.navigationItem.leftBarButtonItem = nil;
+        self.navigationItem.rightBarButtonItem = nil;
         
         // delete friends list
         self.friends = nil;

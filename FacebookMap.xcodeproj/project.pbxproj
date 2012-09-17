@@ -135,7 +135,6 @@
 				2CDF66721603CE9E0091D2D4 /* Model */,
 				2CDF663E160386820091D2D4 /* FacebookMapAppDelegate.h */,
 				2CDF663F160386820091D2D4 /* FacebookMapAppDelegate.m */,
-				2CDF6641160386820091D2D4 /* MainStoryboard.storyboard */,
 				2CDF6647160386820091D2D4 /* FriendsTableViewController.h */,
 				2CDF6648160386820091D2D4 /* FriendsTableViewController.m */,
 				2CDF664A160386820091D2D4 /* MapViewController.h */,
@@ -192,6 +191,7 @@
 		9CEF8D8616069E8200866B17 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				2CDF6641160386820091D2D4 /* MainStoryboard.storyboard */,
 				9CEF8D8316069E7900866B17 /* placeholder.png */,
 			);
 			name = Resources;
