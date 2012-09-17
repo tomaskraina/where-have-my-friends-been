@@ -13,6 +13,8 @@
 #import "TestFlight.h"
 #import "FileCache.h"
 
+#define PAGING_LIMIT 30
+
 @interface MapViewController () <MKMapViewDelegate>
 @property (strong, nonatomic) NSMutableDictionary *locations;
 @property (weak, nonatomic) IBOutlet MKMapView *mapView;
@@ -21,6 +23,7 @@
 @property (nonatomic) NSInteger numberOfRunningRequests;
 @property (strong, nonatomic) FileCache *cache;
 @property (nonatomic) NSInteger numberOfLocations;
+@property (strong, nonatomic) NSDate *startTime;
 - (void)configureView;
 @end
 
@@ -43,23 +46,15 @@
     return  _cache;
 }
 
+static NSTimeInterval AnimationDuration = 1;
+
 - (void)setNumberOfRunningRequests:(NSInteger)numberOfRunningRequests
 {
-    static NSTimeInterval AnimationDuration = 1;
-    
-    if (numberOfRunningRequests > 0 && self.loadingView.hidden == YES) {
-        // show loading view
-        self.loadingView.hidden = NO;
-        [UIView transitionWithView:self.loadingView duration:AnimationDuration options:UIViewAnimationOptionLayoutSubviews animations:^{
-//        self.loadingView.alpha = 1;
-            CGRect frame = self.loadingView.frame;
-            frame.origin.y += frame.size.height;
-            self.loadingView.frame = frame;
-        } completion:nil];
-    }
-    else if (numberOfRunningRequests == 0 && self.loadingView.alpha == 1) {
+    if (numberOfRunningRequests == 0 && self.loadingView.hidden == NO) {
         // hide loading view
+        NSLog(@"Stop time: %@", [NSDate date]);
         NSLog(@"Total %i locations have been harvested", self.numberOfLocations);
+        NSLog(@"Total time %f seconds", [[NSDate date] timeIntervalSinceDate:self.startTime]);
         [UIView transitionWithView:self.loadingView duration:AnimationDuration options:UIViewAnimationOptionLayoutSubviews animations:^{
             CGRect frame = self.loadingView.frame;
             frame.origin.y -= frame.size.height;
@@ -67,12 +62,6 @@
         } completion:^(BOOL finished){
             if (finished) {
                 self.loadingView.hidden = YES;
-//                        self.loadingView.alpha = 0;
-
-// set the original position
-//                        CGRect frame = self.loadingView.frame;
-//                        frame.origin.y = 0;
-//                        self.loadingView.frame = frame;
             }
         }];
     }
@@ -86,23 +75,23 @@
 - (void)requestLocationsForUser:(NSDictionary<FBGraphUser> *)user limit:(NSInteger)limit offset:(NSInteger)offset
 {
     FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:90]; // TODO: review the value
-//    FBRequest *request = [FBRequest requestForGraphPath:[NSString stringWithFormat:@"%@/locations?limit=%i&offset=%i", user.id, limit, offset]];
-    FBRequest *request = [FBRequest requestForGraphPath:[NSString stringWithFormat:@"%@/locations", user.id]];
+    FBRequest *request = [FBRequest requestForGraphPath:[NSString stringWithFormat:@"%@/locations?limit=%i&offset=%i", user.id, limit, offset]];
+//    FBRequest *request = [FBRequest requestForGraphPath:[NSString stringWithFormat:@"%@/locations", user.id]];
     [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
         if (!error && result) {
             NSMutableArray *newLocations = [result objectForKey:@"data"];
             [self addLocations:newLocations forUser:user];
             self.numberOfLocations += newLocations.count;
+            NSLog(@"Harvested %i locations (p=%i) for '%@'", newLocations.count, offset/limit, user.name);
             
             if ([[result objectForKey:@"paging"] objectForKey:@"next"] && newLocations.count > 0) {
                 // Go to the next page
-                NSLog(@"Harvested %i new locations for '%@' (page %i)", newLocations.count, user.name, offset);
                 [self requestLocationsForUser:user limit:limit offset:offset+limit];
             }
-            else {
-                // no other locations available
-                NSLog(@"All locations for '%@' have been harvested.", user.name);
-            }
+//            else {
+//                // no other locations available
+//                NSLog(@"All locations for '%@' have been harvested.", user.name);
+//            }
         }
         else {
             // TODO: do something with the error
@@ -118,9 +107,22 @@
 
 - (void)startDownloadingLocationsForUsers:(NSArray *)users
 {
-    static NSInteger LimitLocation = 99;
+    // show loading view
+    self.loadingView.hidden = NO;
+    [UIView transitionWithView:self.loadingView duration:AnimationDuration options:UIViewAnimationOptionLayoutSubviews animations:^{
+        //        self.loadingView.alpha = 1;
+        CGRect frame = self.loadingView.frame;
+        frame.origin.y += frame.size.height;
+        self.loadingView.frame = frame;
+    } completion:nil];
+    
+    // start counting
+    self.startTime = [NSDate date];
+    NSLog(@"Start time: %@", self.startTime);
+    NSLog(@"Paging limit = %i", PAGING_LIMIT);
+    
     for (NSMutableDictionary<FBGraphUser> *user in users) {
-        [self requestLocationsForUser:user limit:LimitLocation offset:0];
+        [self requestLocationsForUser:user limit:PAGING_LIMIT offset:0];
     }
 }
 
