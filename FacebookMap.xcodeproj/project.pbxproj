@@ -29,6 +29,8 @@
 		2CDF667E1603DD8A0091D2D4 /* LogInViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF667D1603DD8A0091D2D4 /* LogInViewController.m */; };
 		9C79EE271606647B0096C5D4 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C79EE261606647B0096C5D4 /* libz.dylib */; };
 		9C79EE2D1606705B0096C5D4 /* libTestFlight.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C79EE291606705B0096C5D4 /* libTestFlight.a */; };
+		9CEF8D8416069E7900866B17 /* placeholder.png in Resources */ = {isa = PBXBuildFile; fileRef = 9CEF8D8316069E7900866B17 /* placeholder.png */; };
+		9CEF8D8D1606A69E00866B17 /* FileCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CEF8D8C1606A59800866B17 /* FileCache.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -68,6 +70,9 @@
 		9C79EE2A1606705B0096C5D4 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		9C79EE2B1606705B0096C5D4 /* release_notes.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = release_notes.md; sourceTree = "<group>"; };
 		9C79EE2C1606705B0096C5D4 /* TestFlight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestFlight.h; sourceTree = "<group>"; };
+		9CEF8D8316069E7900866B17 /* placeholder.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = placeholder.png; sourceTree = "<group>"; };
+		9CEF8D8B1606A59800866B17 /* FileCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FileCache.h; sourceTree = "<group>"; };
+		9CEF8D8C1606A59800866B17 /* FileCache.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FileCache.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -139,6 +144,9 @@
 				2C3D1FEA160419BC00A36C70 /* PlaceMapAnnotation.m */,
 				2CDF667C1603DD8A0091D2D4 /* LogInViewController.h */,
 				2CDF667D1603DD8A0091D2D4 /* LogInViewController.m */,
+				9CEF8D8B1606A59800866B17 /* FileCache.h */,
+				9CEF8D8C1606A59800866B17 /* FileCache.m */,
+				9CEF8D8616069E8200866B17 /* Resources */,
 				2CDF6636160386820091D2D4 /* Supporting Files */,
 			);
 			path = FacebookMap;
@@ -179,6 +187,14 @@
 			);
 			name = TestFlightSDK;
 			path = lib/TestFlightSDK;
+			sourceTree = "<group>";
+		};
+		9CEF8D8616069E8200866B17 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				9CEF8D8316069E7900866B17 /* placeholder.png */,
+			);
+			name = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -235,6 +251,7 @@
 				2CDF663A160386820091D2D4 /* InfoPlist.strings in Resources */,
 				2CDF6643160386820091D2D4 /* MainStoryboard.storyboard in Resources */,
 				2CDF66711603BAF70091D2D4 /* FacebookSDKResources.bundle in Resources */,
+				9CEF8D8416069E7900866B17 /* placeholder.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -245,6 +262,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9CEF8D8D1606A69E00866B17 /* FileCache.m in Sources */,
 				2CDF663C160386820091D2D4 /* main.m in Sources */,
 				2CDF6640160386820091D2D4 /* FacebookMapAppDelegate.m in Sources */,
 				2CDF6646160386820091D2D4 /* FacebookMap.xcdatamodeld in Sources */,

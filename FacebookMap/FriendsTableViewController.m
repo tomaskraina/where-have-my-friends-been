@@ -10,12 +10,14 @@
 #import "MapViewController.h"
 #import "FacebookMapAppDelegate.h"
 #import <FacebookSDK/FacebookSDK.h>
+#import "FileCache.h"
 
 @interface FriendsTableViewController () <UITableViewDataSource, UITableViewDelegate>
 @property (strong, nonatomic) NSArray *friends;
 @property (strong, nonatomic, readonly) NSArray *sectionedFriends;
 @property (strong, nonatomic) NSMutableDictionary *locations;
 @property (strong, nonatomic) UILocalizedIndexedCollation *collation;
+@property (strong, nonatomic) FileCache *cache;
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath;
 @end
 
@@ -28,6 +30,17 @@
 @synthesize sectionedFriends = _sectionedFriends;
 @synthesize locations = _locations;
 @synthesize collation = _collation;
+@synthesize cache = _cache;
+
+- (FileCache *)cache
+{
+    if (!_cache) {
+        _cache = [[FileCache alloc] init];
+        _cache.maxSize = 10;
+        _cache.domain = @"thumbnails";
+    }
+    return  _cache;
+}
 
 - (NSArray *)sectionedFriends
 {
@@ -270,6 +283,28 @@
     NSMutableDictionary<FBGraphUser> *user = [[self.sectionedFriends objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
     cell.textLabel.text = user.name;
     cell.detailTextLabel.text = user.location.name; // TODO: set last known location
+
+    cell.imageView.image = nil;
+    cell.imageView.image = [UIImage imageNamed:@"placeholder"];
+//    cell.imageView.contentMode = UIViewContentModeCenter;
+//    cell.imageView.clipsToBounds = YES;
+    
+    dispatch_queue_t queue = dispatch_queue_create("profile picture downloader", NULL);
+    dispatch_async(queue, ^{
+        NSData *imageData = [self.cache dataForKey:user.id];
+        
+        if (!imageData) {
+            NSURL *url = [NSURL URLWithString:[FBGraphBasePath stringByAppendingFormat:@"/%@/picture?type=%@", user.id, @"square"]];
+            imageData = [NSData dataWithContentsOfURL:url];
+            [self.cache saveData:imageData forKey:user.id];
+        }
+        
+        UIImage *image = [UIImage imageWithData:imageData];
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            cell.imageView.image = image;
+        });
+    });
 }
 
 - (NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView
