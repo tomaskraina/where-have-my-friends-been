@@ -11,6 +11,7 @@
 #import <MapKit/MapKit.h>
 #import "FacebookMapAppDelegate.h"
 #import "TestFlight.h"
+#import "FileCache.h"
 
 @interface MapViewController () <MKMapViewDelegate>
 @property (strong, nonatomic) NSMutableDictionary *locations;
@@ -18,6 +19,7 @@
 @property (strong, nonatomic) UIPopoverController *masterPopoverController;
 @property (weak, nonatomic) IBOutlet UIView *loadingView;
 @property (nonatomic) NSInteger numberOfRunningRequests;
+@property (strong, nonatomic) FileCache *cache;
 - (void)configureView;
 @end
 
@@ -28,6 +30,17 @@
 @synthesize masterPopoverController = _masterPopoverController;
 @synthesize locations = _locations;
 @synthesize numberOfRunningRequests = _numberOfRunningRequests;
+@synthesize cache = _cache;
+
+- (FileCache *)cache
+{
+    if (!_cache) {
+        _cache = [[FileCache alloc] init];
+        _cache.maxSize = 10;
+        _cache.domain = @"thumbnails";
+    }
+    return  _cache;
+}
 
 #pragma mark - Managing the detail item
 
@@ -96,7 +109,7 @@
         if (![location respondsToSelector:@selector(latitude)] || ![location respondsToSelector:@selector(longitude)]) continue;
         
         CLLocationCoordinate2D coordinates = CLLocationCoordinate2DMake([location.latitude doubleValue], [location.longitude doubleValue]);
-        PlaceMapAnnotation *annotation = [[PlaceMapAnnotation alloc] initWithTitle:user.name subtitle:place.name coordinate:coordinates info:nil];
+        PlaceMapAnnotation *annotation = [[PlaceMapAnnotation alloc] initWithTitle:user.name subtitle:place.name coordinate:coordinates info:user];
 
         // adding just one annotation is a little bit faster than doing it in a batch
         [self.mapView addAnnotation:annotation];
@@ -247,7 +260,8 @@
     MKAnnotationView *annotationView = [mapView dequeueReusableAnnotationViewWithIdentifier:Identifier];
     if (!annotationView) {
         annotationView = [[MKPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:Identifier];
-        annotationView.rightCalloutAccessoryView = [UIButton buttonWithType:UIButtonTypeDetailDisclosure];
+//        annotationView.rightCalloutAccessoryView = [UIButton buttonWithType:UIButtonTypeDetailDisclosure];
+        annotationView.leftCalloutAccessoryView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 32, 32)];
         annotationView.canShowCallout = YES;
     }
     
@@ -256,7 +270,23 @@
 
 - (void)mapView:(MKMapView *)mapView didSelectAnnotationView:(MKAnnotationView *)view
 {
-    
+    dispatch_queue_t queue = dispatch_queue_create("profile picture downloader", NULL);
+    dispatch_async(queue, ^{
+        NSDictionary<FBGraphUser> *user = (NSDictionary<FBGraphUser>*)[(PlaceMapAnnotation *)view.annotation infoDictionary];
+        NSData *imageData = [self.cache dataForKey:user.id];
+        
+        if (!imageData) {
+            // download
+            NSURL *url = [NSURL URLWithString:[FBGraphBasePath stringByAppendingFormat:@"/%@/picture?type=%@", user.id, @"square"]];
+            imageData = [NSData dataWithContentsOfURL:url];
+            [self.cache saveData:imageData forKey:user.id];
+        }
+        
+        UIImage *image = [UIImage imageWithData:imageData];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [(UIImageView *)view.leftCalloutAccessoryView setImage:image];
+        });
+    });
 }
 
 - (void)mapView:(MKMapView *)mapView annotationView:(MKAnnotationView *)view calloutAccessoryControlTapped:(UIControl *)control
