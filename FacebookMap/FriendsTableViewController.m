@@ -18,6 +18,7 @@
 @property (strong, nonatomic) NSMutableDictionary *locations;
 @property (strong, nonatomic) UILocalizedIndexedCollation *collation;
 @property (strong, nonatomic) FileCache *cache;
+@property (nonatomic) BOOL isLoadingFriends;
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath;
 @end
 
@@ -74,6 +75,8 @@
 
 - (void)setFriends:(NSArray *)friends
 {
+    self.isLoadingFriends = NO;
+    
     if (_friends != friends) {
         _friends = friends;
         
@@ -101,16 +104,18 @@
     self.navigationItem.rightBarButtonItem = logoutButton;
 }
 
+- (void)refreshMapWithNewLocations:(NSArray *)locations forUser:(NSDictionary<FBGraphUser> *)user
+{
+    [self.detailViewController addLocations:locations forUser:user];
+}
+
+#pragma mark - Facebook-related methods
+
 - (void)performLogout:(id)sender
 {
     [TestFlight passCheckpoint:@"tap logout"];
     FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
     [appDelegate facebookCloseSession];
-}
-
-- (void)refreshMapWithNewLocations:(NSArray *)locations forUser:(NSDictionary<FBGraphUser> *)user
-{
-    [self.detailViewController addLocations:locations forUser:user];
 }
 
 - (void)fetchLocationsForAllFriends
@@ -137,25 +142,28 @@
 
 - (void)fetchFriends
 {
-//    [FBSettings setLoggingBehavior:[NSSet setWithObjects:FBLoggingBehaviorFBRequests, nil]];
-    FBRequest *request = [FBRequest requestForMyFriends];
-    FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:30]; // TODO: review the timeout value
-    [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error){
-        if (!error && result) {
-            [TestFlight passCheckpoint:@"friends fetched"];
-            
-            self.friends = [result objectForKey:@"data"];
-            [self.tableView reloadData];
-            
-            [self fetchLocationsForAllFriends];
-        }
-        else {
-            NSLog(@"Error during fetching friends: %@", error);
-            // TODO: show error message
-        }
-    }];
+    self.isLoadingFriends = YES;
     
-    [connection start];
+    // Delay execution of my block for 10 seconds.
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC), dispatch_get_current_queue(), ^{
+        FBRequest *request = [FBRequest requestForMyFriends];
+        FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:30]; // TODO: review the timeout value
+        [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error){
+            if (!error && result) {
+                [TestFlight passCheckpoint:@"friends fetched"];
+                
+                self.friends = [result objectForKey:@"data"];
+                [self.tableView reloadData];
+                
+                [self fetchLocationsForAllFriends];
+            }
+            else {
+                NSLog(@"Error during fetching friends: %@", error);
+                // TODO: show error message
+            }
+        }];
+        [connection start];
+    });
 }
 
 - (void)facebookSessionStateChanged:(NSNotification*)notification {
@@ -183,6 +191,9 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    self.isLoadingFriends = NO;
+    
 	// Do any additional setup after loading the view, typically from a nib.
     self.detailViewController = (MapViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
 
@@ -235,16 +246,26 @@
 {
 //    return [self.sections objectAtIndex:section];
 
-    BOOL showSection = [[self.sectionedFriends objectAtIndex:section] count] != 0;
-    //only show the section title if there are rows in the section
-    return (showSection) ? [self.collation.sectionTitles objectAtIndex:section] : nil;
+    if (self.isLoadingFriends) {
+        return nil;
+    }
+    else {
+        BOOL showSection = [[self.sectionedFriends objectAtIndex:section] count] != 0;
+        //only show the section title if there are rows in the section
+        return (showSection) ? [self.collation.sectionTitles objectAtIndex:section] : nil;
+    }
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
 //    return [[self.fetchedResultsController sections] count];
 //    return self.sections.count;
-    return self.collation.sectionTitles.count;
+    if (self.isLoadingFriends) {
+        return 1;
+    }
+    else {
+        return self.collation.sectionTitles.count;
+    }
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
@@ -253,20 +274,37 @@
 //    return [sectionInfo numberOfObjects];
 //    NSString *key = [self.sections objectAtIndex:section];
 //    return [[self.sectionedFriends objectForKey:key] count];
-    return [[self.sectionedFriends objectAtIndex:section] count];
+    if (self.isLoadingFriends) {
+        return 1;
+    }
+    else {
+        return [[self.sectionedFriends objectAtIndex:section] count];
+    }
 }
 
 // Customize the appearance of table view cells.
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    static NSString *CellIdentifier = @"Friend Cell";
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    if (!cell) {
-        // cell didn't load from the storyboard prototype
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
-        // ..
+    UITableViewCell *cell;
+    static NSString *LoadingCellIdentifier = @"Loading Cell";
+    static NSString *FriendCellIdentifier = @"Friend Cell";
+    
+    if (self.isLoadingFriends) {
+        cell = [tableView dequeueReusableCellWithIdentifier:LoadingCellIdentifier];
+        if (!cell) {
+            // cell didn't load from the storyboard prototype
+            cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:LoadingCellIdentifier];
+            cell.textLabel.text = @"Loading friends...";
+        }
     }
-    [self configureCell:cell atIndexPath:indexPath];
+    else {
+        cell = [tableView dequeueReusableCellWithIdentifier:FriendCellIdentifier];
+        if (!cell) {
+            // cell didn't load from the storyboard prototype
+            cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:FriendCellIdentifier];
+        }
+        [self configureCell:cell atIndexPath:indexPath];
+    }
     return cell;
 }
 
