@@ -20,6 +20,7 @@
 @property (weak, nonatomic) IBOutlet UIView *loadingView;
 @property (nonatomic) NSInteger numberOfRunningRequests;
 @property (strong, nonatomic) FileCache *cache;
+@property (nonatomic) NSInteger numberOfLocations;
 - (void)configureView;
 @end
 
@@ -42,64 +43,98 @@
     return  _cache;
 }
 
-#pragma mark - Managing the detail item
-
-- (void)startDownloadingLocationsForUsers:(NSArray *)users
+- (void)setNumberOfRunningRequests:(NSInteger)numberOfRunningRequests
 {
-    // show loading view
     static NSTimeInterval AnimationDuration = 1;
-    [UIView transitionWithView:self.loadingView duration:AnimationDuration options:UIViewAnimationOptionLayoutSubviews animations:^{
-//        self.loadingView.alpha = 1;
-        CGRect frame = self.loadingView.frame;
-        frame.origin.y += frame.size.height;
-        self.loadingView.frame = frame;
-    } completion:nil];
     
-//    NSMutableDictionary *allLocations = self.locations;
-    self.numberOfRunningRequests = 0;
-    for (NSMutableDictionary<FBGraphUser> *user in users) {
-        FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:15]; // TODO: review the value
-        FBRequest *request = [FBRequest requestForGraphPath:[user.id stringByAppendingString:@"/locations"]];
-        [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
-            if (!error && result) {
-                NSArray *locations = [result objectForKey:@"data"];
-//                [allLocations setObject:locations forKey:user.id];
-                [user setObject:locations forKey:@"locations"];
-                [self addLocations:locations forUser:user];
-            }
-            else {
-                // TODO: do something with the error
-                NSLog(@"Error during fetching locations: %@", error);
-            }
-            
-            // hide loading view
-            if (--self.numberOfRunningRequests == 0) {
-                [UIView transitionWithView:self.loadingView duration:AnimationDuration options:UIViewAnimationOptionLayoutSubviews animations:^{
-                    CGRect frame = self.loadingView.frame;
-                    frame.origin.y -= frame.size.height;
-                    self.loadingView.frame = frame;
-                } completion:^(BOOL finished){
-                    if (finished) {
+    if (numberOfRunningRequests > 0 && self.loadingView.hidden == YES) {
+        // show loading view
+        self.loadingView.hidden = NO;
+        [UIView transitionWithView:self.loadingView duration:AnimationDuration options:UIViewAnimationOptionLayoutSubviews animations:^{
+//        self.loadingView.alpha = 1;
+            CGRect frame = self.loadingView.frame;
+            frame.origin.y += frame.size.height;
+            self.loadingView.frame = frame;
+        } completion:nil];
+    }
+    else if (numberOfRunningRequests == 0 && self.loadingView.alpha == 1) {
+        // hide loading view
+        NSLog(@"Total %i locations have been harvested", self.numberOfLocations);
+        [UIView transitionWithView:self.loadingView duration:AnimationDuration options:UIViewAnimationOptionLayoutSubviews animations:^{
+            CGRect frame = self.loadingView.frame;
+            frame.origin.y -= frame.size.height;
+            self.loadingView.frame = frame;
+        } completion:^(BOOL finished){
+            if (finished) {
+                self.loadingView.hidden = YES;
 //                        self.loadingView.alpha = 0;
-                        
-                        // set the original position
+
+// set the original position
 //                        CGRect frame = self.loadingView.frame;
 //                        frame.origin.y = 0;
 //                        self.loadingView.frame = frame;
-                    }
-                }];
             }
         }];
-        [connection start];
-        self.numberOfRunningRequests++;
+    }
+    
+    _numberOfRunningRequests = numberOfRunningRequests;
+    
+}
+
+#pragma mark - Managing the detail item
+
+- (void)requestLocationsForUser:(NSDictionary<FBGraphUser> *)user limit:(NSInteger)limit offset:(NSInteger)offset
+{
+    FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:90]; // TODO: review the value
+//    FBRequest *request = [FBRequest requestForGraphPath:[NSString stringWithFormat:@"%@/locations?limit=%i&offset=%i", user.id, limit, offset]];
+    FBRequest *request = [FBRequest requestForGraphPath:[NSString stringWithFormat:@"%@/locations", user.id]];
+    [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
+        if (!error && result) {
+            NSMutableArray *newLocations = [result objectForKey:@"data"];
+            [self addLocations:newLocations forUser:user];
+            self.numberOfLocations += newLocations.count;
+            
+            if ([[result objectForKey:@"paging"] objectForKey:@"next"] && newLocations.count > 0) {
+                // Go to the next page
+                NSLog(@"Harvested %i new locations for '%@' (page %i)", newLocations.count, user.name, offset);
+                [self requestLocationsForUser:user limit:limit offset:offset+limit];
+            }
+            else {
+                // no other locations available
+                NSLog(@"All locations for '%@' have been harvested.", user.name);
+            }
+        }
+        else {
+            // TODO: do something with the error
+            NSLog(@"Error during fetching locations: %@", error);
+        }
+        
+        self.numberOfRunningRequests--;
+    }];
+    [connection start];
+    self.numberOfRunningRequests++;
+    
+}
+
+- (void)startDownloadingLocationsForUsers:(NSArray *)users
+{
+    static NSInteger LimitLocation = 99;
+    for (NSMutableDictionary<FBGraphUser> *user in users) {
+        [self requestLocationsForUser:user limit:LimitLocation offset:0];
     }
 }
 
-- (void)addLocations:(NSArray *)locations forUser:(NSDictionary<FBGraphUser> *)user
+- (void)addLocations:(NSMutableArray *)locations forUser:(NSDictionary<FBGraphUser> *)user
 {
     // TODO: prevent duplicates
 //    [self.locations setObject:locations forKey:user.id];
-    [user setObject:locations forKey:@"locations"];
+    NSMutableArray *existingUserLocations = [user objectForKey:@"locations"];
+    if (existingUserLocations) {
+        [existingUserLocations addObjectsFromArray:locations];
+    }
+    else {
+        [user setObject:locations forKey:@"locations"];
+    }
     
     for (id<FBGraphObject> object in locations) {
         NSMutableDictionary<FBGraphPlace> *place = [object objectForKey:@"place"];
@@ -178,6 +213,10 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    self.numberOfLocations = 0;
+    self.numberOfRunningRequests = 0;
+    
 	// Do any additional setup after loading the view, typically from a nib.
     [self configureView];
     
