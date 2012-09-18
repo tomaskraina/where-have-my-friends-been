@@ -92,23 +92,22 @@
     if (_friends != friends) {
         _friends = friends;
         
-        // Load friend into CoreData
-//        [self.fetchedResultsController.managedObjectContext performBlock:^{
-            for (NSDictionary<FBGraphUser> *user in friends) {
-                [Friend friendWithFacebookInfo:user inManagedObjectContext:self.managedObjectContext];
-            }
-//        }];
-        
-        // Save the context.
         dispatch_queue_t save_queue = dispatch_queue_create("coredata saver", NULL);
         dispatch_async(save_queue, ^{
+            NSManagedObjectContext *context = [[NSManagedObjectContext alloc] init];
+            FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+            context.persistentStoreCoordinator = appDelegate.persistentStoreCoordinator;
+            
+            // Load friend into CoreData
+            for (NSDictionary<FBGraphUser> *user in friends) {
+                [Friend friendWithFacebookInfo:user inManagedObjectContext:context];
+            }
+            
+            // Save the context.
+            NSLog(@"Saving friends...");
             NSError *error = nil;
-            if (![self.managedObjectContext save:&error]) {
-                /*
-                 Replace this implementation with code to handle the error appropriately.
-                 
-                 abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                 */
+            if (![context save:&error]) {
+                // TODO: get rid of abort()
                 NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
                 abort();
             }
