@@ -219,7 +219,7 @@ NSString *const FBSessionStateChangedNotification = @"com.tomkraina.FacebookMap:
         case FBSessionStateOpen:
             if (!error) {
                 // We have a valid session
-                NSLog(@"User session found");
+                NSLog(@"Facebook: User session found");
             }
             break;
         case FBSessionStateClosed:

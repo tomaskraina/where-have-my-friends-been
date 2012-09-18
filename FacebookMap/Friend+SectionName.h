@@ -1,5 +1,5 @@
 //
-//  Friend.m
+//  Friend+SectionName.h
 //  FacebookMap
 //
 //  Created by Tom K on 9/18/12.
@@ -7,14 +7,9 @@
 //
 
 #import "Friend.h"
-#import "Checkin.h"
 
+@interface Friend (SectionName)
 
-@implementation Friend
-
-@dynamic id;
-@dynamic name;
-@dynamic username;
-@dynamic locations;
+@property (nonatomic, readonly) NSString *sectionName;
 
 @end

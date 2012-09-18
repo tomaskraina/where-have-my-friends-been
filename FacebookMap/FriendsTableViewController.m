@@ -11,6 +11,10 @@
 #import "FacebookMapAppDelegate.h"
 #import <FacebookSDK/FacebookSDK.h>
 #import "FileCache.h"
+#import "Friend.h"
+#import "Friend+Creation.h"
+#import "Checkin.h"
+#import "Location.h"
 
 @interface FriendsTableViewController () <UITableViewDataSource, UITableViewDelegate>
 @property (strong, nonatomic) NSArray *friends;
@@ -30,7 +34,6 @@
 @synthesize friends = _friends;
 @synthesize sectionedFriends = _sectionedFriends;
 @synthesize locations = _locations;
-@synthesize collation = _collation;
 @synthesize cache = _cache;
 
 - (FileCache *)cache
@@ -41,6 +44,15 @@
         _cache.domain = @"thumbnails";
     }
     return  _cache;
+}
+
+- (UILocalizedIndexedCollation *)collation
+{
+    if (!_collation) {
+        _collation = [UILocalizedIndexedCollation currentCollation];
+    }
+    
+    return _collation;
 }
 
 - (NSArray *)sectionedFriends
@@ -80,6 +92,25 @@
     if (_friends != friends) {
         _friends = friends;
         
+        // Load friend into CoreData
+//        [self.fetchedResultsController.managedObjectContext performBlock:^{
+            for (NSDictionary<FBGraphUser> *user in friends) {
+                [Friend friendWithFacebookInfo:user inManagedObjectContext:self.managedObjectContext];
+            }
+//        }];
+        
+        // Save the context.
+        NSError *error = nil;
+        if (![self.managedObjectContext save:&error]) {
+            /*
+             Replace this implementation with code to handle the error appropriately.
+             
+             abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+             */
+            NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
+            abort();
+        }
+        
         // invalidate dependent properties
         _sectionedFriends = nil;
     }
@@ -104,10 +135,6 @@
     self.navigationItem.rightBarButtonItem = logoutButton;
 }
 
-- (void)refreshMapWithNewLocations:(NSArray *)locations forUser:(NSDictionary<FBGraphUser> *)user
-{
-    [self.detailViewController addLocations:locations forUser:user];
-}
 
 #pragma mark - Facebook-related methods
 
@@ -120,12 +147,19 @@
 
 - (void)fetchLocationsForAllFriends
 {
-    [self.detailViewController startDownloadingLocationsForUsers:self.friends];
+    NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Friend"];
+    NSSortDescriptor *sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:NO];
+    request.sortDescriptors = [NSArray arrayWithObject:sortDescriptor];
+    
+    NSError *error;
+    NSArray *friends = [self.managedObjectContext executeFetchRequest:request error:&error];
+    [self.detailViewController startDownloadingLocationsForUsers:friends];
 }
 
-- (void)fetchFriends
+- (void)fetchFriendsInContext:(NSManagedObjectContext *)context
 {
-    self.isLoadingFriends = YES;
+    // TODO: Uncomment to show activity indicator
+//    self.isLoadingFriends = YES;
     
     // Delay execution of my block for 10 seconds.
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC), dispatch_get_current_queue(), ^{
@@ -135,14 +169,13 @@
             if (!error && result) {
                 [TestFlight passCheckpoint:@"friends fetched"];
                 
+                // Load friends into Core Data
                 self.friends = [result objectForKey:@"data"];
-                [self.tableView reloadData];
-                
                 [self fetchLocationsForAllFriends];
             }
             else {
                 NSLog(@"Error during fetching friends: %@", error);
-                // TODO: show error message
+                // TODO: show error message (A view probably) and refresh button!
             }
         }];
         [connection start];
@@ -151,7 +184,7 @@
 
 - (void)facebookSessionStateChanged:(NSNotification*)notification {
     if (FBSession.activeSession.isOpen) {
-        [self fetchFriends];
+//        [self fetchFriendsInContext:self.managedObjectContext];
         
         // Show the logout button
         if (!self.navigationItem.rightBarButtonItem) {
@@ -161,7 +194,7 @@
         // hide the logout button
         self.navigationItem.rightBarButtonItem = nil;
         
-        // delete friends list
+        // TODO: delete friends list
         self.friends = nil;
         [self.tableView reloadData];
         
@@ -181,9 +214,6 @@
     self.detailViewController = (MapViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
 
     // TODO: set up refresh button
-    
-    // Collation object
-    self.collation = [UILocalizedIndexedCollation currentCollation];
     
     // Register for notifications
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(facebookSessionStateChanged:) name:FBSessionStateChangedNotification object:nil];
@@ -227,41 +257,46 @@
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
-//    return [self.sections objectAtIndex:section];
-
     if (self.isLoadingFriends) {
         return nil;
     }
     else {
-        BOOL showSection = [[self.sectionedFriends objectAtIndex:section] count] != 0;
-        //only show the section title if there are rows in the section
-        return (showSection) ? [self.collation.sectionTitles objectAtIndex:section] : nil;
+        // UILocalizeIndexedCollation
+//        BOOL showSection = [[self.sectionedFriends objectAtIndex:section] count] != 0;
+//        //only show the section title if there are rows in the section
+//        return (showSection) ? [self.collation.sectionTitles objectAtIndex:section] : nil;
+        
+        // CoreData
+        return [[self.fetchedResultsController sectionIndexTitles] objectAtIndex:section];
     }
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-//    return [[self.fetchedResultsController sections] count];
-//    return self.sections.count;
     if (self.isLoadingFriends) {
         return 1;
     }
     else {
-        return self.collation.sectionTitles.count;
+        // UILocalizedIndexedCollation
+//        return self.collation.sectionTitles.count;
+        
+        // CoreData
+        return [[self.fetchedResultsController sections] count];
     }
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-//    id <NSFetchedResultsSectionInfo> sectionInfo = [[self.fetchedResultsController sections] objectAtIndex:section];
-//    return [sectionInfo numberOfObjects];
-//    NSString *key = [self.sections objectAtIndex:section];
-//    return [[self.sectionedFriends objectForKey:key] count];
     if (self.isLoadingFriends) {
         return 1;
     }
     else {
-        return [[self.sectionedFriends objectAtIndex:section] count];
+        // UILocalizedIndexedCollation
+//        return [[self.sectionedFriends objectAtIndex:section] count];
+
+        // CoreData
+        id <NSFetchedResultsSectionInfo> sectionInfo = [[self.fetchedResultsController sections] objectAtIndex:section];
+        return [sectionInfo numberOfObjects];
     }
 }
 
@@ -291,24 +326,26 @@
     return cell;
 }
 
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
-{
+//- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+//{
 //    NSManagedObject *selectedObject = [[self fetchedResultsController] objectAtIndexPath:indexPath];
 //    self.detailViewController.detailItem = selectedObject;
-}
+//}
 
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath
 {
-//    NSManagedObject *managedObject = [self.fetchedResultsController objectAtIndexPath:indexPath];
-
-    NSMutableDictionary<FBGraphUser> *user = [[self.sectionedFriends objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
+    // UILocalizedIndexedCollation & Facebook
+//    NSMutableDictionary<FBGraphUser> *user = [[self.sectionedFriends objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
+//    cell.textLabel.text = user.name;
+//    cell.detailTextLabel.text = user.location.name; // TODO: set last known location
+    
+    // CoreData
+    Friend *user = [self.fetchedResultsController objectAtIndexPath:indexPath];
     cell.textLabel.text = user.name;
-    cell.detailTextLabel.text = user.location.name; // TODO: set last known location
+    cell.detailTextLabel.text = ((Checkin *)user.locations.anyObject).location.name; // TODO: get the last known location
 
     cell.imageView.image = nil;
     cell.imageView.image = [UIImage imageNamed:@"placeholder"];
-//    cell.imageView.contentMode = UIViewContentModeCenter;
-//    cell.imageView.clipsToBounds = YES;
     
     dispatch_queue_t queue = dispatch_queue_create("profile picture downloader", NULL);
     dispatch_async(queue, ^{
@@ -330,13 +367,20 @@
 
 - (NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView
 {
-    return self.collation.sectionIndexTitles;
+    // UILocalizedIndexedCollation
+//    return self.collation.sectionIndexTitles;
+    
+    // CoreData
+    return [self.fetchedResultsController sectionIndexTitles];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView sectionForSectionIndexTitle:(NSString *)title atIndex:(NSInteger)index
 {
-    //sectionForSectionIndexTitleAtIndex: is a bit buggy, but is still useable
-    return [self.collation sectionForSectionIndexTitleAtIndex:index];
+    // UILocalizedIndexedCollation
+//    return [self.collation sectionForSectionIndexTitleAtIndex:index];
+    
+    // CoreData
+    return [self.fetchedResultsController sectionForSectionIndexTitle:title atIndex:index];
 }
 
 
@@ -357,16 +401,17 @@
     [fetchRequest setEntity:entity];
     
     // Set the batch size to a suitable number.
-    [fetchRequest setFetchBatchSize:20];
+    [fetchRequest setFetchBatchSize:300];
     
     // Set up sort descriptors.
-    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"name" ascending:NO];
+    // Use localizedStandardCompare: (http://stackoverflow.com/questions/7199934/nsfetchedresultscontroller-v-s-uilocalizedindexedcollation)
+    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES selector:@selector(localizedStandardCompare:)];
     NSArray *sortDescriptors = [NSArray arrayWithObjects:sortDescriptor, nil];
     [fetchRequest setSortDescriptors:sortDescriptors];
     
     // Edit the section name key path and cache name if appropriate.
     // nil for section name key path means "no sections".
-    NSFetchedResultsController *aFetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:self.managedObjectContext sectionNameKeyPath:nil cacheName:@"Master"];
+    NSFetchedResultsController *aFetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:self.managedObjectContext sectionNameKeyPath:@"sectionName" cacheName:nil];
     aFetchedResultsController.delegate = self;
     self.fetchedResultsController = aFetchedResultsController;
     
@@ -444,28 +489,5 @@
 }
  */
 
-- (void)insertNewObject
-{
-    // Create a new instance of the entity managed by the fetched results controller.
-    NSManagedObjectContext *context = [self.fetchedResultsController managedObjectContext];
-    NSEntityDescription *entity = [[self.fetchedResultsController fetchRequest] entity];
-    NSManagedObject *newManagedObject = [NSEntityDescription insertNewObjectForEntityForName:[entity name] inManagedObjectContext:context];
-    
-    // If appropriate, configure the new managed object.
-    // Normally you should use accessor methods, but using KVC here avoids the need to add a custom class to the template.
-    [newManagedObject setValue:[NSDate date] forKey:@"timeStamp"];
-    
-    // Save the context.
-    NSError *error = nil;
-    if (![context save:&error]) {
-        /*
-         Replace this implementation with code to handle the error appropriately.
-         
-         abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development. 
-         */
-        NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
-        abort();
-    }
-}
 
 @end

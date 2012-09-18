@@ -23,12 +23,17 @@
 		2CDF6655160386B80091D2D4 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CDF6654160386B80091D2D4 /* MapKit.framework */; };
 		2CDF666F1603BAEB0091D2D4 /* FacebookSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CDF666E1603BAEB0091D2D4 /* FacebookSDK.framework */; };
 		2CDF66711603BAF70091D2D4 /* FacebookSDKResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 2CDF66701603BAF70091D2D4 /* FacebookSDKResources.bundle */; };
-		2CDF66751603CEDF0091D2D4 /* LocationObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF66741603CEDF0091D2D4 /* LocationObject.m */; };
-		2CDF66781603CEDF0091D2D4 /* Friend.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF66771603CEDF0091D2D4 /* Friend.m */; };
-		2CDF667B1603CEDF0091D2D4 /* Place.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF667A1603CEDF0091D2D4 /* Place.m */; };
 		2CDF667E1603DD8A0091D2D4 /* LogInViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF667D1603DD8A0091D2D4 /* LogInViewController.m */; };
 		9C79EE271606647B0096C5D4 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C79EE261606647B0096C5D4 /* libz.dylib */; };
 		9C79EE2D1606705B0096C5D4 /* libTestFlight.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C79EE291606705B0096C5D4 /* libTestFlight.a */; };
+		9CCFE2FD1607DC9800B6702E /* Friend+Creation.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CCFE2FC1607DC9800B6702E /* Friend+Creation.m */; };
+		9CCFE30F1607E61E00B6702E /* Checkin+Creation.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CCFE30E1607E61E00B6702E /* Checkin+Creation.m */; };
+		9CCFE3121607EEC900B6702E /* Friend.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CCFE3111607EEC900B6702E /* Friend.m */; };
+		9CCFE3241607F3C600B6702E /* Location+Creation.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CCFE3231607F3C600B6702E /* Location+Creation.m */; };
+		9CCFE3271607F67D00B6702E /* Location.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CCFE3261607F67C00B6702E /* Location.m */; };
+		9CCFE32A1607F69800B6702E /* Checkin.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CCFE3291607F69800B6702E /* Checkin.m */; };
+		9CCFE32D1607F78D00B6702E /* Checkin+MapAnnotation.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CCFE32C1607F78D00B6702E /* Checkin+MapAnnotation.m */; };
+		9CCFE3301608010200B6702E /* Friend+SectionName.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CCFE32F1608010100B6702E /* Friend+SectionName.m */; };
 		9CEF8D8416069E7900866B17 /* placeholder.png in Resources */ = {isa = PBXBuildFile; fileRef = 9CEF8D8316069E7900866B17 /* placeholder.png */; };
 		9CEF8D8D1606A69E00866B17 /* FileCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CEF8D8C1606A59800866B17 /* FileCache.m */; };
 /* End PBXBuildFile section */
@@ -57,12 +62,6 @@
 		2CDF6654160386B80091D2D4 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		2CDF666E1603BAEB0091D2D4 /* FacebookSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FacebookSDK.framework; path = lib/FacebookSDK.framework; sourceTree = "<group>"; };
 		2CDF66701603BAF70091D2D4 /* FacebookSDKResources.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = FacebookSDKResources.bundle; path = lib/FacebookSDK.framework/Versions/A/Resources/FacebookSDKResources.bundle; sourceTree = "<group>"; };
-		2CDF66731603CEDF0091D2D4 /* LocationObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocationObject.h; sourceTree = "<group>"; };
-		2CDF66741603CEDF0091D2D4 /* LocationObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LocationObject.m; sourceTree = "<group>"; };
-		2CDF66761603CEDF0091D2D4 /* Friend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Friend.h; sourceTree = "<group>"; };
-		2CDF66771603CEDF0091D2D4 /* Friend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Friend.m; sourceTree = "<group>"; };
-		2CDF66791603CEDF0091D2D4 /* Place.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Place.h; sourceTree = "<group>"; };
-		2CDF667A1603CEDF0091D2D4 /* Place.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Place.m; sourceTree = "<group>"; };
 		2CDF667C1603DD8A0091D2D4 /* LogInViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LogInViewController.h; sourceTree = "<group>"; };
 		2CDF667D1603DD8A0091D2D4 /* LogInViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogInViewController.m; sourceTree = "<group>"; };
 		9C79EE261606647B0096C5D4 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
@@ -70,6 +69,22 @@
 		9C79EE2A1606705B0096C5D4 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		9C79EE2B1606705B0096C5D4 /* release_notes.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = release_notes.md; sourceTree = "<group>"; };
 		9C79EE2C1606705B0096C5D4 /* TestFlight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestFlight.h; sourceTree = "<group>"; };
+		9CCFE2FB1607DC9800B6702E /* Friend+Creation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Friend+Creation.h"; sourceTree = "<group>"; };
+		9CCFE2FC1607DC9800B6702E /* Friend+Creation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Friend+Creation.m"; sourceTree = "<group>"; };
+		9CCFE30D1607E61E00B6702E /* Checkin+Creation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Checkin+Creation.h"; sourceTree = "<group>"; };
+		9CCFE30E1607E61E00B6702E /* Checkin+Creation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Checkin+Creation.m"; sourceTree = "<group>"; };
+		9CCFE3101607EEC900B6702E /* Friend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Friend.h; sourceTree = "<group>"; };
+		9CCFE3111607EEC900B6702E /* Friend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Friend.m; sourceTree = "<group>"; };
+		9CCFE3221607F3C600B6702E /* Location+Creation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Location+Creation.h"; sourceTree = "<group>"; };
+		9CCFE3231607F3C600B6702E /* Location+Creation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Location+Creation.m"; sourceTree = "<group>"; };
+		9CCFE3251607F67B00B6702E /* Location.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Location.h; sourceTree = "<group>"; };
+		9CCFE3261607F67C00B6702E /* Location.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Location.m; sourceTree = "<group>"; };
+		9CCFE3281607F69700B6702E /* Checkin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Checkin.h; sourceTree = "<group>"; };
+		9CCFE3291607F69800B6702E /* Checkin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Checkin.m; sourceTree = "<group>"; };
+		9CCFE32B1607F78D00B6702E /* Checkin+MapAnnotation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Checkin+MapAnnotation.h"; sourceTree = "<group>"; };
+		9CCFE32C1607F78D00B6702E /* Checkin+MapAnnotation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Checkin+MapAnnotation.m"; sourceTree = "<group>"; };
+		9CCFE32E1608010100B6702E /* Friend+SectionName.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Friend+SectionName.h"; sourceTree = "<group>"; };
+		9CCFE32F1608010100B6702E /* Friend+SectionName.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Friend+SectionName.m"; sourceTree = "<group>"; };
 		9CEF8D8316069E7900866B17 /* placeholder.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = placeholder.png; sourceTree = "<group>"; };
 		9CEF8D8B1606A59800866B17 /* FileCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FileCache.h; sourceTree = "<group>"; };
 		9CEF8D8C1606A59800866B17 /* FileCache.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FileCache.m; sourceTree = "<group>"; };
@@ -165,15 +180,33 @@
 		2CDF66721603CE9E0091D2D4 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				2CDF66791603CEDF0091D2D4 /* Place.h */,
-				2CDF667A1603CEDF0091D2D4 /* Place.m */,
-				2CDF66761603CEDF0091D2D4 /* Friend.h */,
-				2CDF66771603CEDF0091D2D4 /* Friend.m */,
-				2CDF66731603CEDF0091D2D4 /* LocationObject.h */,
-				2CDF66741603CEDF0091D2D4 /* LocationObject.m */,
+				9C5317E01608056B004DE752 /* Core Data Generated */,
+				9CCFE32B1607F78D00B6702E /* Checkin+MapAnnotation.h */,
+				9CCFE32C1607F78D00B6702E /* Checkin+MapAnnotation.m */,
+				9CCFE3221607F3C600B6702E /* Location+Creation.h */,
+				9CCFE3231607F3C600B6702E /* Location+Creation.m */,
+				9CCFE32E1608010100B6702E /* Friend+SectionName.h */,
+				9CCFE32F1608010100B6702E /* Friend+SectionName.m */,
+				9CCFE2FB1607DC9800B6702E /* Friend+Creation.h */,
+				9CCFE2FC1607DC9800B6702E /* Friend+Creation.m */,
+				9CCFE30D1607E61E00B6702E /* Checkin+Creation.h */,
+				9CCFE30E1607E61E00B6702E /* Checkin+Creation.m */,
 				2CDF6644160386820091D2D4 /* FacebookMap.xcdatamodeld */,
 			);
 			name = Model;
+			sourceTree = "<group>";
+		};
+		9C5317E01608056B004DE752 /* Core Data Generated */ = {
+			isa = PBXGroup;
+			children = (
+				9CCFE3281607F69700B6702E /* Checkin.h */,
+				9CCFE3291607F69800B6702E /* Checkin.m */,
+				9CCFE3101607EEC900B6702E /* Friend.h */,
+				9CCFE3111607EEC900B6702E /* Friend.m */,
+				9CCFE3251607F67B00B6702E /* Location.h */,
+				9CCFE3261607F67C00B6702E /* Location.m */,
+			);
+			name = "Core Data Generated";
 			sourceTree = "<group>";
 		};
 		9C79EE281606705B0096C5D4 /* TestFlightSDK */ = {
@@ -268,11 +301,16 @@
 				2CDF6646160386820091D2D4 /* FacebookMap.xcdatamodeld in Sources */,
 				2CDF6649160386820091D2D4 /* FriendsTableViewController.m in Sources */,
 				2CDF664C160386820091D2D4 /* MapViewController.m in Sources */,
-				2CDF66751603CEDF0091D2D4 /* LocationObject.m in Sources */,
-				2CDF66781603CEDF0091D2D4 /* Friend.m in Sources */,
-				2CDF667B1603CEDF0091D2D4 /* Place.m in Sources */,
 				2CDF667E1603DD8A0091D2D4 /* LogInViewController.m in Sources */,
 				2C3D1FEB160419BC00A36C70 /* PlaceMapAnnotation.m in Sources */,
+				9CCFE2FD1607DC9800B6702E /* Friend+Creation.m in Sources */,
+				9CCFE30F1607E61E00B6702E /* Checkin+Creation.m in Sources */,
+				9CCFE3121607EEC900B6702E /* Friend.m in Sources */,
+				9CCFE3241607F3C600B6702E /* Location+Creation.m in Sources */,
+				9CCFE3271607F67D00B6702E /* Location.m in Sources */,
+				9CCFE32A1607F69800B6702E /* Checkin.m in Sources */,
+				9CCFE32D1607F78D00B6702E /* Checkin+MapAnnotation.m in Sources */,
+				9CCFE3301608010200B6702E /* Friend+SectionName.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

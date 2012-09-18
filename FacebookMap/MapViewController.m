@@ -12,6 +12,9 @@
 #import "FacebookMapAppDelegate.h"
 #import "TestFlight.h"
 #import "FileCache.h"
+#import "Friend.h"
+#import "Checkin+Creation.h"
+#import "Checkin+MapAnnotation.h"
 
 #define PAGING_LIMIT 30
 
@@ -72,11 +75,10 @@ static NSTimeInterval AnimationDuration = 1;
 
 #pragma mark - Managing the detail item
 
-- (void)requestLocationsForUser:(NSDictionary<FBGraphUser> *)user limit:(NSInteger)limit offset:(NSInteger)offset
+- (void)requestLocationsForUser:(Friend *)user limit:(NSInteger)limit offset:(NSInteger)offset
 {
     FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:90]; // TODO: review the value
     FBRequest *request = [FBRequest requestForGraphPath:[NSString stringWithFormat:@"%@/locations?limit=%i&offset=%i", user.id, limit, offset]];
-//    FBRequest *request = [FBRequest requestForGraphPath:[NSString stringWithFormat:@"%@/locations", user.id]];
     [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
         if (!error && result) {
             NSMutableArray *newLocations = [result objectForKey:@"data"];
@@ -121,35 +123,25 @@ static NSTimeInterval AnimationDuration = 1;
     NSLog(@"Start time: %@", self.startTime);
     NSLog(@"Paging limit = %i", PAGING_LIMIT);
     
-    for (NSMutableDictionary<FBGraphUser> *user in users) {
+    for (Friend *user in users) {
         [self requestLocationsForUser:user limit:PAGING_LIMIT offset:0];
     }
 }
 
-- (void)addLocations:(NSMutableArray *)locations forUser:(NSDictionary<FBGraphUser> *)user
+- (void)addLocations:(NSMutableArray *)locations forUser:(Friend *)user
 {
-    // TODO: prevent duplicates
-//    [self.locations setObject:locations forKey:user.id];
-    NSMutableArray *existingUserLocations = [user objectForKey:@"locations"];
-    if (existingUserLocations) {
-        [existingUserLocations addObjectsFromArray:locations];
-    }
-    else {
-        [user setObject:locations forKey:@"locations"];
-    }
-    
-    for (id<FBGraphObject> object in locations) {
-        NSMutableDictionary<FBGraphPlace> *place = [object objectForKey:@"place"];
-        NSMutableDictionary<FBGraphLocation> *location = (NSMutableDictionary<FBGraphLocation> *)place.location;
+    for (NSDictionary<FBGraphObject> *checkinInfo in locations) {
         
+        // Add locations into Core Data
+        FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+        Checkin *checkin = [Checkin checkinWithFacebookInfo:checkinInfo forUser:user inManagedObjectContext:appDelegate.managedObjectContext];
+        
+        // TODO: move
         // skip this one if latitude or longitude is missing
-        if (![location respondsToSelector:@selector(latitude)] || ![location respondsToSelector:@selector(longitude)]) continue;
-        
-        CLLocationCoordinate2D coordinates = CLLocationCoordinate2DMake([location.latitude doubleValue], [location.longitude doubleValue]);
-        PlaceMapAnnotation *annotation = [[PlaceMapAnnotation alloc] initWithTitle:user.name subtitle:place.name coordinate:coordinates info:user];
+//        if (![location respondsToSelector:@selector(latitude)] || ![location respondsToSelector:@selector(longitude)]) continue;
 
         // adding just one annotation is a little bit faster than doing it in a batch
-        [self.mapView addAnnotation:annotation];
+        [self.mapView addAnnotation:checkin];
     }
 }
 
