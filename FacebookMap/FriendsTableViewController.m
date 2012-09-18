@@ -184,7 +184,13 @@
 
 - (void)facebookSessionStateChanged:(NSNotification*)notification {
     if (FBSession.activeSession.isOpen) {
-//        [self fetchFriendsInContext:self.managedObjectContext];
+        NSArray *fetchedObjects = [self.fetchedResultsController fetchedObjects];
+        if ([fetchedObjects count] == 0) {
+            [self fetchFriendsInContext:self.managedObjectContext];
+        }
+        else {
+            [self fetchLocationsForAllFriends];
+        }
         
         // Show the logout button
         if (!self.navigationItem.rightBarButtonItem) {
