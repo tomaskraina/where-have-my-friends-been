@@ -20,6 +20,8 @@
 
 @interface MapViewController () <MKMapViewDelegate>
 @property (strong, nonatomic) NSMutableDictionary *locations;
+@property (strong, nonatomic) NSDictionary *users;
+
 @property (weak, nonatomic) IBOutlet MKMapView *mapView;
 @property (strong, nonatomic) UIPopoverController *masterPopoverController;
 @property (weak, nonatomic) IBOutlet UIView *loadingView;
@@ -49,6 +51,39 @@
     return  _cache;
 }
 
+- (NSMutableDictionary *)locations
+{
+    if (!_locations) {
+        _locations = [NSMutableDictionary dictionary];
+    }
+    
+    return _locations;
+}
+
+- (void)reloadAnnotationsFromCoreData
+{
+    FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+    
+    NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Checkin"];
+    NSSortDescriptor *sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"id" ascending:YES];
+    request.sortDescriptors = [NSArray arrayWithObject:sortDescriptor];
+    request.predicate = nil;
+    
+    NSError *error;
+    NSArray *locations = [appDelegate.managedObjectContext executeFetchRequest:request error:&error];
+    
+    if (locations.count > 0) {
+        NSLog(@"Adding %i locations on the map.", locations.count);
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.mapView addAnnotations:locations];
+        });
+    }
+    else {
+        // TODO: Start fetching locations for users?
+    }
+}
+
 static NSTimeInterval AnimationDuration = 1;
 
 - (void)setNumberOfRunningRequests:(NSInteger)numberOfRunningRequests
@@ -67,6 +102,44 @@ static NSTimeInterval AnimationDuration = 1;
                 self.loadingView.hidden = YES;
             }
         }];
+        
+        // this adds locations to CoreData
+        dispatch_queue_t queue = dispatch_queue_create("profile picture downloader", NULL);
+        dispatch_async(queue, ^{
+            NSLog(@"Adding locations into CoreData.");
+            for (NSString *userid in self.locations) {
+                NSArray *locations = [self.locations objectForKey:userid];
+                
+                // Add locations into Core Data
+                FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+                for (NSDictionary<FBGraphPlace> *checkinInfo in locations) {
+//                    NSLog(@"Checkininfo: %@", checkinInfo);
+                    [Checkin checkinWithFacebookInfo:checkinInfo forUser:[self.users objectForKey:userid] inManagedObjectContext:appDelegate.managedObjectContext];
+                    
+                    // NOTE: save coredata here to see the errors immediately
+                }
+                
+                if (locations.count > 0) {
+                    // Save the context.
+                    NSLog(@"Saving CoreData for user %@", [[self.users objectForKey:userid] valueForKey:@"name"]);
+                    FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+                    NSError *error = nil;
+                    if (![appDelegate.managedObjectContext save:&error]) {
+                        /*
+                         Replace this implementation with code to handle the error appropriately.
+                         
+                         abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+                         */
+                        NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
+                        abort();
+                    }
+                }
+            }
+            
+            // add location objects to the map
+            NSLog(@"Adding locations on the map.");
+            [self reloadAnnotationsFromCoreData];
+        });
     }
     
     _numberOfRunningRequests = numberOfRunningRequests;
@@ -77,12 +150,20 @@ static NSTimeInterval AnimationDuration = 1;
 
 - (void)requestLocationsForUser:(Friend *)user limit:(NSInteger)limit offset:(NSInteger)offset
 {
-    FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:90]; // TODO: review the value
+    FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:120]; // TODO: review the value
     FBRequest *request = [FBRequest requestForGraphPath:[NSString stringWithFormat:@"%@/locations?limit=%i&offset=%i", user.id, limit, offset]];
     [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
         if (!error && result) {
             NSMutableArray *newLocations = [result objectForKey:@"data"];
-            [self addLocations:newLocations forUser:user];
+            
+            // add locations to temporary array before showing them on the map
+            NSMutableArray *userLocations = [self.locations objectForKey:user.id];
+            if (!userLocations) {
+                userLocations = [NSMutableArray array];
+            }
+            [userLocations addObjectsFromArray:newLocations];
+            [self.locations setObject:userLocations forKey:user.id];
+            
             self.numberOfLocations += newLocations.count;
             NSLog(@"Harvested %i locations (p=%i) for '%@'", newLocations.count, offset/limit, user.name);
             
@@ -109,6 +190,13 @@ static NSTimeInterval AnimationDuration = 1;
 
 - (void)startDownloadingLocationsForUsers:(NSArray *)users
 {
+    // save users
+    NSMutableDictionary *usersDictionary = [NSMutableDictionary dictionaryWithCapacity:users.count];
+    for (Friend *user in users) {
+        [usersDictionary setObject:user forKey:user.id];
+    }
+    self.users = usersDictionary;
+    
     // show loading view
     self.loadingView.hidden = NO;
     [UIView transitionWithView:self.loadingView duration:AnimationDuration options:UIViewAnimationOptionLayoutSubviews animations:^{
@@ -128,22 +216,14 @@ static NSTimeInterval AnimationDuration = 1;
     }
 }
 
-- (void)addLocations:(NSMutableArray *)locations forUser:(Friend *)user
-{
-    for (NSDictionary<FBGraphObject> *checkinInfo in locations) {
-        
-        // Add locations into Core Data
-        FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-        Checkin *checkin = [Checkin checkinWithFacebookInfo:checkinInfo forUser:user inManagedObjectContext:appDelegate.managedObjectContext];
-        
-        // TODO: move
-        // skip this one if latitude or longitude is missing
-//        if (![location respondsToSelector:@selector(latitude)] || ![location respondsToSelector:@selector(longitude)]) continue;
-
-        // adding just one annotation is a little bit faster than doing it in a batch
-        [self.mapView addAnnotation:checkin];
-    }
-}
+//- (void)addLocations:(NSMutableArray *)locations forUser:(Friend *)user
+//{
+//    for (NSDictionary<FBGraphObject> *checkinInfo in locations) {
+//        
+//        // adding just one annotation is a little bit faster than doing it in a batch
+//        [self.mapView addAnnotation:checkin];
+//    }
+//}
 
 - (void)setDetailItem:(id)newDetailItem
 {
@@ -185,7 +265,8 @@ static NSTimeInterval AnimationDuration = 1;
 - (void)facebookSessionStateChanged:(NSNotification*)notification {
     if (FBSession.activeSession.isOpen) {
         [self dismissModalViewControllerAnimated:YES];
-    } else {
+    }
+    else {
         [self showLoginScreen];
         
         // TODO: stop all running requests
@@ -244,6 +325,11 @@ static NSTimeInterval AnimationDuration = 1;
     if (!FBSession.activeSession.isOpen) {
         [self showLoginScreen];
     }
+    else {
+        // try to get cached location objects
+        [self reloadAnnotationsFromCoreData];
+    }
+    
 }
 
 - (void)viewWillDisappear:(BOOL)animated

@@ -1,4 +1,4 @@
-//
+
 //  Location+Creation.m
 //  FacebookMap
 //
@@ -13,6 +13,11 @@
 + (Location *)locationWithFacebookInfo:(NSDictionary<FBGraphPlace> *)placeInfo
                 inManagedObjectContext:(NSManagedObjectContext *)context
 {
+    if (!placeInfo) {
+        NSLog(@"Error: Can't create Location object without any info");
+        return nil;
+    }
+    
     Location *location;
     
     NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Location"];
@@ -22,8 +27,9 @@
     NSError *error;
     NSArray *matches = [context executeFetchRequest:request error:&error];
     
-    if (!matches || matches.count > 0) {
+    if (!matches || matches.count > 1) {
         // handle error
+        NSLog(@"Error: matches = %@", matches);
     }
     else if (matches.count == 0) {
         // create new object
@@ -37,7 +43,7 @@
             location.longitude = [NSNumber numberWithDouble:[placeInfo.location.longitude doubleValue]];
         }
         else {
-            NSLog(@"Error: location is a member of ", [[placeInfo.location class] description]);
+            NSLog(@"Error: location is a member of '%@'", [[placeInfo.location class] description]);
         }
     }
     else {

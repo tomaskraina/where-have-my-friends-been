@@ -27,6 +27,13 @@
         // handle error
     }
     else if (matches.count == 0) {
+        // validate
+        if (![checkinInfo objectForKey:@"place"]) {
+            NSLog(@"Error: Checkin has no location data.");
+            NSLog(@"Error: Checkin info: %@", checkinInfo);
+            return nil;
+        }
+        
         // create
         checkin = [NSEntityDescription insertNewObjectForEntityForName:@"Checkin" inManagedObjectContext:context];
         checkin.id = [checkinInfo objectForKey:@"id"];
@@ -36,6 +43,11 @@
         // TODO: convert string to NSDate
 //        checkin.created_time = [checkinInfo objectForKey:@"created_time"];
         checkin.location = [Location locationWithFacebookInfo:[checkinInfo objectForKey:@"place"] inManagedObjectContext:context];
+        if (!checkin.location) {
+            NSLog(@"Error creating Locations with data: %@", [checkinInfo objectForKey:@"place"]);
+            checkin = nil; // TODO: Does it work?
+            return nil;
+        }
         [checkin addWhoHasBeenThereObject:user];
     }
     else {

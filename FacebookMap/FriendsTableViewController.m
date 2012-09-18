@@ -100,16 +100,19 @@
 //        }];
         
         // Save the context.
-        NSError *error = nil;
-        if (![self.managedObjectContext save:&error]) {
-            /*
-             Replace this implementation with code to handle the error appropriately.
-             
-             abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-             */
-            NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
-            abort();
-        }
+        dispatch_queue_t save_queue = dispatch_queue_create("coredata saver", NULL);
+        dispatch_async(save_queue, ^{
+            NSError *error = nil;
+            if (![self.managedObjectContext save:&error]) {
+                /*
+                 Replace this implementation with code to handle the error appropriately.
+                 
+                 abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+                 */
+                NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
+                abort();
+            }
+        });
         
         // invalidate dependent properties
         _sectionedFriends = nil;
@@ -153,6 +156,7 @@
     
     NSError *error;
     NSArray *friends = [self.managedObjectContext executeFetchRequest:request error:&error];
+//    friends = [friends subarrayWithRange:NSMakeRange(0, 30)];
     [self.detailViewController startDownloadingLocationsForUsers:friends];
 }
 
@@ -189,6 +193,7 @@
             [self fetchFriendsInContext:self.managedObjectContext];
         }
         else {
+            // TODO: tell MapViewController to refresh its location objects
             [self fetchLocationsForAllFriends];
         }
         
