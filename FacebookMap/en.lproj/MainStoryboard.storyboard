@@ -54,6 +54,11 @@
                     </view>
                     <toolbarItems>
                         <barButtonItem style="plain" systemItem="flexibleSpace" id="RT6-hj-YPL"/>
+                        <barButtonItem systemItem="refresh" id="ueo-e9-Aq6">
+                            <connections>
+                                <action selector="refreshPressed:" destination="4" id="11a-ZE-LHj"/>
+                            </connections>
+                        </barButtonItem>
                         <barButtonItem title="Delete CoreData" id="413-pa-agQ">
                             <connections>
                                 <action selector="deleteCoreData:" destination="4" id="MM2-QP-bgT"/>

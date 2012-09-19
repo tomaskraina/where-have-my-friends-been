@@ -10,11 +10,14 @@
 #import <FacebookSDK/FacebookSDK.h>
 
 @class Friend;
+@class FriendsTableViewController;
 
 @interface MapViewController : UIViewController <UISplitViewControllerDelegate>
 
 @property (strong, nonatomic) id detailItem;
+@property (strong, nonatomic) FriendsTableViewController *friendViewController;
 
 - (void)startFetchingCheckinsForFriends:(NSArray *)users;
+- (void)reloadAnnotationsFromCoreData;
 
 @end

@@ -155,7 +155,7 @@
 // Run this only on the main thread
 - (void)fetchFriendsIntoCoreDataWithLimit:(NSInteger)limit offset:(NSInteger)offset startDate:(NSDate *)start
 {
-    NSString *graphPath = [NSString stringWithFormat:@"me/friends?limit=%i&offset=%i", limit, offset];
+    NSString *graphPath = [NSString stringWithFormat:@"me/friends?limit=%i&offset=%i&fields=name,username", limit, offset];
     FBRequest *request = [FBRequest requestForGraphPath:graphPath];
     [request startWithCompletionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
         if (result && !error) {
@@ -177,6 +177,7 @@
                     
                     // save context
                     NSError *error;
+                    NSLog(@"Saving context...");
                     if (![context save:&error]) {
                         // NOTE: Handle error?
                         NSLog(@"Error: Couldn't save friends (limit=%i, offset=%i)", limit, offset);
@@ -204,7 +205,7 @@
     }];
 }
 
-// Run this on a background thread
+
 - (void)startFetchingUsersIntoCoreData
 {
     [self fetchFriendsIntoCoreDataWithLimit:30 offset:0 startDate:[NSDate date]];
@@ -217,6 +218,7 @@
         }
         else {
             // TODO: tell MapViewController to refresh its location objects
+            [self.detailViewController reloadAnnotationsFromCoreData];
             [self fetchLocationsForAllFriends];
         }
         
@@ -381,7 +383,7 @@
     // CoreData
     Friend *user = [self.fetchedResultsController objectAtIndexPath:indexPath];
     cell.textLabel.text = user.name;
-//    cell.detailTextLabel.text = ((Checkin *)user.locations.anyObject).location.name; // TODO: get the last known location
+    cell.detailTextLabel.text = ((Checkin *)user.locations.anyObject).location.name; // TODO: get the last known location
 
     cell.imageView.image = nil;
     cell.imageView.image = [UIImage imageNamed:@"placeholder"];
@@ -521,12 +523,22 @@
 - (void)contentChanged:(NSNotification *)notification
 {
     if ([notification object] == [self managedObjectContext]) return;
+//    if ([[[notification.userInfo objectForKey:NSInsertedObjectsKey] anyObject] isKindOfClass:[Checkin class]]) return;
+
+    for (id object in [notification.userInfo objectForKey:NSInsertedObjectsKey]) {
+//            NSLog(@"inserted: %@", object);
+        if ([object isKindOfClass:[Checkin class]]) return;
+    }
+    for (id object in [notification.userInfo objectForKey:NSUpdatedObjectsKey]) {
+//        NSLog(@"updated: %@", object);
+        if ([object isKindOfClass:[Checkin class]]) return;
+    }
     
     if (![NSThread isMainThread]) {
         [self performSelectorOnMainThread:@selector(contentChanged:) withObject:notification waitUntilDone:YES];
         return;
     }
-    
+
     [[self managedObjectContext] mergeChangesFromContextDidSaveNotification:notification];
 }
 

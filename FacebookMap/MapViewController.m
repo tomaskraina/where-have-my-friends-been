@@ -15,6 +15,7 @@
 #import "Friend.h"
 #import "Checkin+Creation.h"
 #import "Checkin+MapAnnotation.h"
+#import "FriendsTableViewController.h"
 
 #define PAGING_LIMIT 30
 
@@ -32,6 +33,8 @@
 
 @property (nonatomic) BOOL isFetchingAllowed;
 @property (strong, nonatomic) NSManagedObjectContext *managedObjectContext;
+@property (nonatomic) dispatch_queue_t fetchingQueue;
+
 - (void)configureView;
 @end
 
@@ -47,6 +50,8 @@
 @synthesize startTime = _startTime;
 @synthesize isFetchingAllowed = _isFetchingAllowed;
 @synthesize managedObjectContext = _managedObjectContext;
+@synthesize fetchingQueue = _fetchingQueue;
+@synthesize friendViewController = _friendViewController;
 
 
 - (FileCache *)cache
@@ -88,7 +93,7 @@
         return;
     }
     
-    NSLog(@"Refreshing map annotations from CoreData...");
+//    NSLog(@"Refreshing map annotations from CoreData...");
     
     NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Checkin"];
     NSSortDescriptor *sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"id" ascending:YES];
@@ -99,7 +104,7 @@
     NSArray *locations = [self.managedObjectContext executeFetchRequest:request error:&error];
     
     if (locations.count > 0) {
-        NSLog(@"Adding %i locations on the map.", locations.count);
+//        NSLog(@"Adding %i locations on the map.", locations.count);
         
 //        dispatch_async(dispatch_get_main_queue(), ^{
             [self.mapView addAnnotations:locations];
@@ -143,11 +148,7 @@ static NSTimeInterval AnimationDuration = 1;
 - (void)setNumberOfRunningRequests:(NSInteger)numberOfRunningRequests
 {
     if (numberOfRunningRequests == 0 && self.loadingView.hidden == NO) {
-        [self hideLoadingViewAnimated];
-        
-        NSLog(@"Stop time: %@", [NSDate date]);
-        NSLog(@"Total %i locations have been harvested", self.numberOfLocations);
-        NSLog(@"Total time %f seconds", [[NSDate date] timeIntervalSinceDate:self.startTime]);
+        [self didFinishFetchingAllCheckins];
     }
     
     _numberOfRunningRequests = numberOfRunningRequests;
@@ -156,14 +157,24 @@ static NSTimeInterval AnimationDuration = 1;
 
 #pragma mark - Managing the detail item
 
+- (void)didFinishFetchingAllCheckins
+{
+    NSLog(@"Stop time: %@", [NSDate date]);
+    NSLog(@"Total %i locations have been imported", self.numberOfLocations);
+    NSLog(@"Total time %f seconds", [[NSDate date] timeIntervalSinceDate:self.startTime]);
+    
+    dispatch_release(self.fetchingQueue);
+    [self hideLoadingViewAnimated];
+}
+
 - (void)didFetchAllCheckinsForFriend:(Friend *)friend
 {
-    NSLog(@"All locations for friend=%@ has been imported", friend.name);
+    NSLog(@"All locations for friend=%@ has been imported", friend.username);
 }
 
 - (void)didFailFetchingCheckinsForFriend:(Friend *)friend error:(NSError *)error
 {
-    NSLog(@"Error: Can't download locations for friend %@ : %@", friend.name, error.debugDescription);
+    NSLog(@"Error: Can't download locations for friend %@ : %@", friend.username, error.debugDescription);
 }
 
 // Run this only on the main thread
@@ -179,34 +190,41 @@ static NSTimeInterval AnimationDuration = 1;
         
         if (result && !error) {
             // add to data store
-            NSLog(@"Processing locations... (limit=%i, offset=%i, friend=%@)", limit, offset, friend.name);
+            NSLog(@"Processing locations... (limit=%i, offset=%i, friend=%@)", limit, offset, friend.username);
             NSArray *checkins = [result objectForKey:@"data"];
             if (checkins.count > 0) {
                 
                 // Import and save CoreData in the background
                 // It creates it's own context
-                dispatch_queue_t queue = dispatch_queue_create("location importer", NULL);
-                dispatch_async(queue, ^{
-                    NSManagedObjectContext *context = [[NSManagedObjectContext alloc] init];
-                    FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-                    context.persistentStoreCoordinator = appDelegate.persistentStoreCoordinator;
+//                dispatch_queue_t queue = dispatch_queue_create("location importer", NULL);
+//                dispatch_queue_t queue = self.fetchingQueue;
+//                dispatch_async(queue, ^{
+//                    NSManagedObjectContext *context = [[NSManagedObjectContext alloc] init];
+//                    FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+//                    context.persistentStoreCoordinator = appDelegate.persistentStoreCoordinator;
+                NSManagedObjectContext *context = self.managedObjectContext;
+                
                     for (NSDictionary<FBGraphObject> *checkin in checkins) {
-                        [Checkin checkinWithFacebookInfo:checkin forUser:friend inManagedObjectContext:context];
+                        // Don't bother adding objects without no place...
+                        if ([[checkin objectForKey:@"place"] conformsToProtocol:@protocol(FBGraphPlace)]) {
+                            [Checkin checkinWithFacebookInfo:checkin forUser:friend inManagedObjectContext:context];
+                        }
                     }
                     
                     // save context
                     NSError *error;
+                    NSLog(@"Saving context...");
                     if (![context save:&error]) {
                         // NOTE: Handle error?
-                        NSLog(@"Error: Couldn't save locations (limit=%i, offset=%i, friend=%@)", limit, offset, friend.name);
+                        NSLog(@"Error: Couldn't save locations (limit=%i, offset=%i, friend=%@)", limit, offset, friend.username);
                         NSLog(@"Error: description: %@", [error debugDescription]);
                     }
                     
-                    NSLog(@"Imported %i locations (limit=%i, offset=%i, friend=%@)", checkins.count, limit, offset, friend.name);
+                    NSLog(@"Imported %i locations (limit=%i, offset=%i, friend=%@)", checkins.count, limit, offset, friend.username);
                     
                     // Notify mapview to reload its data
                     [self reloadAnnotationsFromCoreData];
-                });
+//                });
                 
                 // check for additional data (recursion)
                 if ([[result objectForKey:@"paging"] objectForKey:@"next"]) {
@@ -229,14 +247,16 @@ static NSTimeInterval AnimationDuration = 1;
     self.numberOfRunningRequests++;
 }
 
-- (void)startFetchingCheckinsIntoCoreDataForFriend:(Friend *)friend
-{
-    if (!self.isFetchingAllowed) return;
-    [self fetchCheckinsIntoCoreDataForFriend:friend limit:PAGING_LIMIT offset:0];
-}
+//- (void)startFetchingCheckinsIntoCoreDataForFriend:(Friend *)friend
+//{
+//    if (!self.isFetchingAllowed) return;
+//    [self fetchCheckinsIntoCoreDataForFriend:friend limit:PAGING_LIMIT offset:0];
+//}
 
 - (void)startFetchingCheckinsForFriends:(NSArray *)friends
-{    
+{
+    NSArray *__friends = [friends copy];
+    
     // show loading view
     [self showLoadingViewAnimated];
     
@@ -246,8 +266,9 @@ static NSTimeInterval AnimationDuration = 1;
     NSLog(@"Paging limit = %i", PAGING_LIMIT);
     
     self.isFetchingAllowed = YES;
-    for (Friend *friend in friends) {
-        [self startFetchingCheckinsIntoCoreDataForFriend:friend];
+    self.fetchingQueue = dispatch_queue_create("location importer", NULL);
+    for (Friend *friend in __friends) {
+        [self fetchCheckinsIntoCoreDataForFriend:friend limit:PAGING_LIMIT offset:0];
     }
 }
 
@@ -278,6 +299,9 @@ static NSTimeInterval AnimationDuration = 1;
     // Release any cached data, images, etc that aren't in use.
 }
 
+- (IBAction)refreshPressed:(id)sender {
+    [self.friendViewController startFetchingUsersIntoCoreData];
+}
 
 - (IBAction)deleteCoreData:(id)sender {
     

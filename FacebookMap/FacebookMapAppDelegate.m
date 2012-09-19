@@ -96,6 +96,7 @@ NSString *const FBSessionStateChangedNotification = @"com.tomkraina.FacebookMap:
 
 - (void)saveContext
 {
+    NSLog(@"Saving context...");
     NSError *error = nil;
     NSManagedObjectContext *managedObjectContext = self.managedObjectContext;
     if (managedObjectContext != nil)
@@ -115,26 +116,34 @@ NSString *const FBSessionStateChangedNotification = @"com.tomkraina.FacebookMap:
 
 - (void)deleteCoreData
 {
-    NSFetchRequest * request = [[NSFetchRequest alloc] initWithEntityName:@"Friend"];
-    request.includesPropertyValues = NO; //only fetch the managedObjectID
-    request.includesSubentities = NO;
+    NSLog(@"Deleting CoreData objects...");
     
-    NSError *error = nil;
-    NSArray *allObjects = [self.managedObjectContext executeFetchRequest:request error:&error];
-    if (!allObjects || error) {
-        NSLog(@"Error: Could't load data to delete: %@", error.debugDescription);
+    NSArray *entities = [NSArray arrayWithObjects:@"Friend", @"Checkins", nil];
+    for (NSString *entity in entities) {
+        NSFetchRequest * request = [[NSFetchRequest alloc] initWithEntityName:@"Friend"];
+        request.includesPropertyValues = NO; //only fetch the managedObjectID
+        request.includesSubentities = NO;
+        
+        NSError *error;
+        NSArray *allObjects = [self.managedObjectContext executeFetchRequest:request error:&error];
+        if (!allObjects || error) {
+            NSLog(@"Error: Could't load data to delete: %@", error.debugDescription);
+            abort();
+        }
+        for (NSManagedObject *object in allObjects) {
+            [self.managedObjectContext deleteObject:object];
+        }
+    }
+
+    // Save changes
+    NSLog(@"Saving context...");
+    NSError *saveError;
+    if (![self.managedObjectContext save:&saveError]) {
+        NSLog(@"Error with deleting friends: %@", saveError.debugDescription);
         abort();
     }
-    for (NSManagedObject *object in allObjects) {
-        [self.managedObjectContext deleteObject:object];
-    }
     
-    NSError *saveError = nil;
-    [self.managedObjectContext save:&saveError];
-    if (error) {
-        NSLog(@"Error with deleting friends: %@", error.debugDescription);
-        abort();
-    }
+    NSLog(@"Objects deleted.");
 }
 
 #pragma mark - Core Data stack
