@@ -113,6 +113,30 @@ NSString *const FBSessionStateChangedNotification = @"com.tomkraina.FacebookMap:
     }
 }
 
+- (void)deleteCoreData
+{
+    NSFetchRequest * request = [[NSFetchRequest alloc] initWithEntityName:@"Friend"];
+    request.includesPropertyValues = NO; //only fetch the managedObjectID
+    request.includesSubentities = NO;
+    
+    NSError *error = nil;
+    NSArray *allObjects = [self.managedObjectContext executeFetchRequest:request error:&error];
+    if (!allObjects || error) {
+        NSLog(@"Error: Could't load data to delete: %@", error.debugDescription);
+        abort();
+    }
+    for (NSManagedObject *object in allObjects) {
+        [self.managedObjectContext deleteObject:object];
+    }
+    
+    NSError *saveError = nil;
+    [self.managedObjectContext save:&saveError];
+    if (error) {
+        NSLog(@"Error with deleting friends: %@", error.debugDescription);
+        abort();
+    }
+}
+
 #pragma mark - Core Data stack
 
 /**

@@ -21,6 +21,8 @@ extern NSString *const FBSessionStateChangedNotification;
 - (void)saveContext;
 - (NSURL *)applicationDocumentsDirectory;
 
+- (void)deleteCoreData;
+
 - (void)facebookOpenSessionWithAllowLoginUI:(BOOL)allowLoginUI;
 - (void)facebookCloseSession;
 

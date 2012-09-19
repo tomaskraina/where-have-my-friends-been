@@ -143,6 +143,15 @@
 
 #pragma mark - Facebook-related methods
 
+- (void)didFetchAllFriendsWithStartDate:(NSDate *)start
+{
+    NSLog(@"Friends downloaded from Facebook in %f seconds", [[NSDate date] timeIntervalSinceDate:start]);
+    [TestFlight passCheckpoint:@"friends fetched"];
+    
+    // Friends are ready to go => Start loading locations
+    [self fetchLocationsForAllFriends];
+}
+
 - (void)performLogout:(id)sender
 {
     [TestFlight passCheckpoint:@"tap logout"];
@@ -152,14 +161,70 @@
 
 - (void)fetchLocationsForAllFriends
 {
-    NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Friend"];
-    NSSortDescriptor *sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:NO];
-    request.sortDescriptors = [NSArray arrayWithObject:sortDescriptor];
-    
-    NSError *error;
-    NSArray *friends = [self.managedObjectContext executeFetchRequest:request error:&error];
+    NSArray *users = [self.fetchedResultsController fetchedObjects];
 //    friends = [friends subarrayWithRange:NSMakeRange(0, 30)];
-    [self.detailViewController startDownloadingLocationsForUsers:friends];
+    NSLog(@"Start fetching locations for %i friends", users.count);
+    [self.detailViewController startDownloadingLocationsForUsers:users];
+}
+
+// Run this on a background thread
+// It creates it's own context
+- (void)fetchFriendsIntoCoreDataWithLimit:(NSInteger)limit offset:(NSInteger)offset startDate:(NSDate *)start
+{
+    NSString *graphPath = [NSString stringWithFormat:@"me/friends?limit=%i&offset=%i", limit, offset];
+    FBRequest *request = [FBRequest requestForGraphPath:graphPath];
+    FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:30];
+    [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
+        if (result && !error) {
+            // add to data store
+            NSLog(@"Processing friends... (limit=%i, offset=%i)", limit, offset);
+            NSArray *users = [result objectForKey:@"data"];
+            if (users.count > 0) {
+                // Is this the main thread? If not do it in background
+                
+                dispatch_queue_t queue = dispatch_queue_create("friend importer", NULL);
+                dispatch_async(queue, ^{
+                    NSManagedObjectContext *context = [[NSManagedObjectContext alloc] init];
+                    FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+                    context.persistentStoreCoordinator = appDelegate.persistentStoreCoordinator;
+                    for (NSDictionary<FBGraphUser> *user in users) {
+                        [Friend friendWithFacebookInfo:user inManagedObjectContext:context];
+                    }
+                    
+                    // save context
+                    NSError *error;
+                    if (![context save:&error]) {
+                        // TODO: handle error
+                        NSLog(@"Error: Couldn't save friends (limit=%i, offset=%i)", limit, offset);
+                        NSLog(@"Error: description: %@", [error debugDescription]);
+                    }
+                });
+                
+                // check for additional data (recursion)
+                if ([[result objectForKey:@"paging"] objectForKey:@"next"]) {
+                    [self fetchFriendsIntoCoreDataWithLimit:limit offset:offset+limit startDate:start];
+                }
+                else {
+                    // this was the last page
+                    [self didFetchAllFriendsWithStartDate:start];
+                }
+            }
+            else {
+                // this was the last page
+                [self didFetchAllFriendsWithStartDate:start];
+            }
+        }
+        else {
+            NSLog(@"Error: Can't download friends: %@", error.debugDescription);
+        }
+    }];
+    [connection start];
+}
+
+// Run this on a background thread
+- (void)startFetchingUsersIntoCoreData
+{
+    [self fetchFriendsIntoCoreDataWithLimit:30 offset:0 startDate:[NSDate date]];
 }
 
 - (void)fetchFriendsInContext:(NSManagedObjectContext *)context
@@ -193,7 +258,8 @@
     if (FBSession.activeSession.isOpen) {
         NSArray *fetchedObjects = [self.fetchedResultsController fetchedObjects];
         if ([fetchedObjects count] == 0) {
-            [self fetchFriendsInContext:self.managedObjectContext];
+//            [self fetchFriendsInContext:self.managedObjectContext];
+            [self startFetchingUsersIntoCoreData];
         }
         else {
             // TODO: tell MapViewController to refresh its location objects
@@ -504,9 +570,6 @@
     }
     
     [[self managedObjectContext] mergeChangesFromContextDidSaveNotification:notification];
-    
-    // Friends are ready to go => Start loading locations
-    [self fetchLocationsForAllFriends];
 }
 
 /*

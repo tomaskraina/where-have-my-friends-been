@@ -29,6 +29,8 @@
 @property (strong, nonatomic) FileCache *cache;
 @property (nonatomic) NSInteger numberOfLocations;
 @property (strong, nonatomic) NSDate *startTime;
+
+@property (nonatomic) BOOL isFetchingAllowed;
 - (void)configureView;
 @end
 
@@ -40,6 +42,10 @@
 @synthesize locations = _locations;
 @synthesize numberOfRunningRequests = _numberOfRunningRequests;
 @synthesize cache = _cache;
+@synthesize numberOfLocations = _numberOfLocations;
+@synthesize startTime = _startTime;
+@synthesize isFetchingAllowed = _isFetchingAllowed;
+
 
 - (FileCache *)cache
 {
@@ -121,7 +127,7 @@ static NSTimeInterval AnimationDuration = 1;
                 
                 if (locations.count > 0) {
                     // Save the context.
-                    NSLog(@"Saving CoreData for user %@", [[self.users objectForKey:userid] valueForKey:@"name"]);
+                    NSLog(@"Saving locations for user %@", [[self.users objectForKey:userid] valueForKey:@"name"]);
                     FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
                     NSError *error = nil;
                     if (![appDelegate.managedObjectContext save:&error]) {
@@ -148,11 +154,17 @@ static NSTimeInterval AnimationDuration = 1;
 
 #pragma mark - Managing the detail item
 
+// TODO: this is threaded, it shouldn't write to ivars!
 - (void)requestLocationsForUser:(Friend *)user limit:(NSInteger)limit offset:(NSInteger)offset
 {
+    if (!self.isFetchingAllowed) return;
+    
     FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:120]; // TODO: review the value
     FBRequest *request = [FBRequest requestForGraphPath:[NSString stringWithFormat:@"%@/locations?limit=%i&offset=%i", user.id, limit, offset]];
     [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
+        self.numberOfRunningRequests--;
+        if (!self.isFetchingAllowed) return;
+        
         if (!error && result) {
             NSMutableArray *newLocations = [result objectForKey:@"data"];
             
@@ -180,8 +192,6 @@ static NSTimeInterval AnimationDuration = 1;
             // TODO: do something with the error
             NSLog(@"Error during fetching locations: %@", error);
         }
-        
-        self.numberOfRunningRequests--;
     }];
     [connection start];
     self.numberOfRunningRequests++;
@@ -211,6 +221,7 @@ static NSTimeInterval AnimationDuration = 1;
     NSLog(@"Start time: %@", self.startTime);
     NSLog(@"Paging limit = %i", PAGING_LIMIT);
     
+    self.isFetchingAllowed = YES;
     for (Friend *user in users) {
         [self requestLocationsForUser:user limit:PAGING_LIMIT offset:0];
     }
@@ -254,27 +265,13 @@ static NSTimeInterval AnimationDuration = 1;
 
 - (IBAction)deleteCoreData:(id)sender {
     
-    // TODO: Stop all runninf requests!
+    // TODO: Stop all runnin' requests!
+    // use dispatch_group ?
+    self.isFetchingAllowed = NO;
     
     // Should be always on the main thread (since it's called from UI)
     FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-    NSFetchRequest * request = [[NSFetchRequest alloc] initWithEntityName:@"Friend"];
-    request.includesPropertyValues = NO; //only fetch the managedObjectID
-    request.includesSubentities = NO;
-    
-    NSError *error = nil;
-    NSArray *allObjects = [appDelegate.managedObjectContext executeFetchRequest:request error:&error];
-    //error handling goes here
-    for (NSManagedObject *object in allObjects) {
-        [appDelegate.managedObjectContext deleteObject:object];
-    }
-    NSError *saveError = nil;
-    [appDelegate.managedObjectContext save:&saveError];
-    if (error) {
-        NSLog(@"Error with deleting friends: %@", error.debugDescription);
-        abort();
-    }
-    //more error handling here
+    [appDelegate deleteCoreData];
 }
 
 #pragma mark - TestFlight
@@ -317,6 +314,7 @@ static NSTimeInterval AnimationDuration = 1;
     
     self.numberOfLocations = 0;
     self.numberOfRunningRequests = 0;
+    self.isFetchingAllowed = NO;
     
 	// Do any additional setup after loading the view, typically from a nib.
     [self configureView];
