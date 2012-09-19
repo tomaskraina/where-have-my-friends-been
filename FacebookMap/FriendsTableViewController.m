@@ -416,7 +416,7 @@
     [fetchRequest setEntity:entity];
     
     // Set the batch size to a suitable number.
-    [fetchRequest setFetchBatchSize:300];
+    [fetchRequest setFetchBatchSize:20];
     
     // Set up sort descriptors.
     // Use localizedStandardCompare: (http://stackoverflow.com/questions/7199934/nsfetchedresultscontroller-v-s-uilocalizedindexedcollation)
