@@ -92,30 +92,6 @@
     if (_friends != friends) {
         _friends = friends;
         
-        dispatch_queue_t save_queue = dispatch_queue_create("coredata saver", NULL);
-        dispatch_async(save_queue, ^{
-            NSDate *start = [NSDate date];
-            NSLog(@"Creating Managed Objects for friends...");
-            NSManagedObjectContext *context = [[NSManagedObjectContext alloc] init];
-            FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-            context.persistentStoreCoordinator = appDelegate.persistentStoreCoordinator;
-            
-            // Load friend into CoreData
-            for (NSDictionary<FBGraphUser> *user in friends) {
-                [Friend friendWithFacebookInfo:user inManagedObjectContext:context];
-            }
-            
-            // Save the context.
-            NSLog(@"Saving friends...");
-            NSError *error = nil;
-            if (![context save:&error]) {
-                // TODO: get rid of abort()
-                NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
-                abort();
-            }
-            NSLog(@"Friends created and saved in %f seconds", [[NSDate date] timeIntervalSinceDate:start]);
-        });
-        
         // invalidate dependent properties
         _sectionedFriends = nil;
     }
@@ -145,11 +121,18 @@
 
 - (void)didFetchAllFriendsWithStartDate:(NSDate *)start
 {
+    self.isLoadingFriends = NO;
     NSLog(@"Friends downloaded from Facebook in %f seconds", [[NSDate date] timeIntervalSinceDate:start]);
     [TestFlight passCheckpoint:@"friends fetched"];
     
     // Friends are ready to go => Start loading locations
     [self fetchLocationsForAllFriends];
+}
+
+- (void)didFailFetchingAllFriendsWithStartDate:(NSDate *)start error:(NSError *)error
+{
+    self.isLoadingFriends = NO;
+    NSLog(@"Error: Can't download friends: %@", error.debugDescription);
 }
 
 - (void)performLogout:(id)sender
@@ -161,27 +144,28 @@
 
 - (void)fetchLocationsForAllFriends
 {
+    // Uncomment the line below to show 'Loading users...' in the first row (bug, it doesn't work!)
+//    self.isLoadingFriends = YES;
     NSArray *users = [self.fetchedResultsController fetchedObjects];
 //    friends = [friends subarrayWithRange:NSMakeRange(0, 30)];
     NSLog(@"Start fetching locations for %i friends", users.count);
     [self.detailViewController startDownloadingLocationsForUsers:users];
 }
 
-// Run this on a background thread
-// It creates it's own context
+// Run this only on the main thread
 - (void)fetchFriendsIntoCoreDataWithLimit:(NSInteger)limit offset:(NSInteger)offset startDate:(NSDate *)start
 {
     NSString *graphPath = [NSString stringWithFormat:@"me/friends?limit=%i&offset=%i", limit, offset];
     FBRequest *request = [FBRequest requestForGraphPath:graphPath];
-    FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:30];
-    [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
+    [request startWithCompletionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
         if (result && !error) {
             // add to data store
             NSLog(@"Processing friends... (limit=%i, offset=%i)", limit, offset);
             NSArray *users = [result objectForKey:@"data"];
             if (users.count > 0) {
-                // Is this the main thread? If not do it in background
                 
+                // Import and save CoreData in the background
+                // It creates it's own context
                 dispatch_queue_t queue = dispatch_queue_create("friend importer", NULL);
                 dispatch_async(queue, ^{
                     NSManagedObjectContext *context = [[NSManagedObjectContext alloc] init];
@@ -194,7 +178,7 @@
                     // save context
                     NSError *error;
                     if (![context save:&error]) {
-                        // TODO: handle error
+                        // NOTE: Handle error?
                         NSLog(@"Error: Couldn't save friends (limit=%i, offset=%i)", limit, offset);
                         NSLog(@"Error: description: %@", [error debugDescription]);
                     }
@@ -215,10 +199,9 @@
             }
         }
         else {
-            NSLog(@"Error: Can't download friends: %@", error.debugDescription);
+            [self didFailFetchingAllFriendsWithStartDate:start error:error];
         }
     }];
-    [connection start];
 }
 
 // Run this on a background thread
@@ -227,38 +210,9 @@
     [self fetchFriendsIntoCoreDataWithLimit:30 offset:0 startDate:[NSDate date]];
 }
 
-- (void)fetchFriendsInContext:(NSManagedObjectContext *)context
-{
-    // TODO: Uncomment to show activity indicator
-//    self.isLoadingFriends = YES;
-    
-    // Delay execution of my block
-//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC), dispatch_get_current_queue(), ^{
-    NSDate *start = [NSDate date];
-        FBRequest *request = [FBRequest requestForMyFriends];
-        FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:30]; // TODO: review the timeout value
-        [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error){
-            if (!error && result) {
-                NSLog(@"Friends downloaded from Facebook in %f seconds", [[NSDate date] timeIntervalSinceDate:start]);
-                [TestFlight passCheckpoint:@"friends fetched"];
-                
-                // Load friends into Core Data
-                self.friends = [result objectForKey:@"data"];
-            }
-            else {
-                NSLog(@"Error during fetching friends: %@", error);
-                // TODO: show error message (A view probably) and refresh button!
-            }
-        }];
-        [connection start];
-//    });
-}
-
 - (void)facebookSessionStateChanged:(NSNotification*)notification {
     if (FBSession.activeSession.isOpen) {
-        NSArray *fetchedObjects = [self.fetchedResultsController fetchedObjects];
-        if ([fetchedObjects count] == 0) {
-//            [self fetchFriendsInContext:self.managedObjectContext];
+        if (self.fetchedResultsController.fetchedObjects.count == 0) {
             [self startFetchingUsersIntoCoreData];
         }
         else {
@@ -274,11 +228,15 @@
         // hide the logout button
         self.navigationItem.rightBarButtonItem = nil;
         
-        // TODO: delete friends list
-        self.friends = nil;
-        [self.tableView reloadData];
+        // Delete friends list
+//        self.friends = nil;
+//        [self.tableView reloadData];
         
-        // TODO: stop all running requests
+        // Delete CoreData
+        FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+        [appDelegate deleteCoreData];
+        
+        // TODO: stop all running requests (queues)
     }
 }
 
