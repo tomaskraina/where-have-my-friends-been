@@ -251,6 +251,32 @@ static NSTimeInterval AnimationDuration = 1;
     // Release any cached data, images, etc that aren't in use.
 }
 
+
+- (IBAction)deleteCoreData:(id)sender {
+    
+    // TODO: Stop all runninf requests!
+    
+    // Should be always on the main thread (since it's called from UI)
+    FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+    NSFetchRequest * request = [[NSFetchRequest alloc] initWithEntityName:@"Friend"];
+    request.includesPropertyValues = NO; //only fetch the managedObjectID
+    request.includesSubentities = NO;
+    
+    NSError *error = nil;
+    NSArray *allObjects = [appDelegate.managedObjectContext executeFetchRequest:request error:&error];
+    //error handling goes here
+    for (NSManagedObject *object in allObjects) {
+        [appDelegate.managedObjectContext deleteObject:object];
+    }
+    NSError *saveError = nil;
+    [appDelegate.managedObjectContext save:&saveError];
+    if (error) {
+        NSLog(@"Error with deleting friends: %@", error.debugDescription);
+        abort();
+    }
+    //more error handling here
+}
+
 #pragma mark - TestFlight
 - (IBAction)launchFeedback {
     [TestFlight openFeedbackView];
@@ -360,6 +386,9 @@ static NSTimeInterval AnimationDuration = 1;
     [TestFlight passCheckpoint:@"portrait"];
     barButtonItem.title = NSLocalizedString(@"Friends", @"Friends");
     [self.navigationItem setLeftBarButtonItem:barButtonItem animated:YES];
+    NSMutableArray *toolbarItems = [self.toolbarItems mutableCopy];
+    [toolbarItems insertObject:barButtonItem atIndex:0];
+    self.toolbarItems = toolbarItems;
     self.masterPopoverController = popoverController;
 }
 
@@ -368,6 +397,9 @@ static NSTimeInterval AnimationDuration = 1;
     [TestFlight passCheckpoint:@"landscape"];
     // Called when the view is shown again in the split view, invalidating the button and popover controller.
     [self.navigationItem setLeftBarButtonItem:nil animated:YES];
+    NSMutableArray *toolbarItems = [self.toolbarItems mutableCopy];
+    [toolbarItems removeObject:barButtonItem];
+    self.toolbarItems = toolbarItems;
     self.masterPopoverController = nil;
 }
 

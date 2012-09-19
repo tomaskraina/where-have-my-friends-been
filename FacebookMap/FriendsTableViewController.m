@@ -94,6 +94,8 @@
         
         dispatch_queue_t save_queue = dispatch_queue_create("coredata saver", NULL);
         dispatch_async(save_queue, ^{
+            NSDate *start = [NSDate date];
+            NSLog(@"Creating Managed Objects for friends...");
             NSManagedObjectContext *context = [[NSManagedObjectContext alloc] init];
             FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
             context.persistentStoreCoordinator = appDelegate.persistentStoreCoordinator;
@@ -111,6 +113,7 @@
                 NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
                 abort();
             }
+            NSLog(@"Friends created and saved in %f seconds", [[NSDate date] timeIntervalSinceDate:start]);
         });
         
         // invalidate dependent properties
@@ -164,17 +167,18 @@
     // TODO: Uncomment to show activity indicator
 //    self.isLoadingFriends = YES;
     
-    // Delay execution of my block for 10 seconds.
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC), dispatch_get_current_queue(), ^{
+    // Delay execution of my block
+//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC), dispatch_get_current_queue(), ^{
+    NSDate *start = [NSDate date];
         FBRequest *request = [FBRequest requestForMyFriends];
         FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:30]; // TODO: review the timeout value
         [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error){
             if (!error && result) {
+                NSLog(@"Friends downloaded from Facebook in %f seconds", [[NSDate date] timeIntervalSinceDate:start]);
                 [TestFlight passCheckpoint:@"friends fetched"];
                 
                 // Load friends into Core Data
                 self.friends = [result objectForKey:@"data"];
-                [self fetchLocationsForAllFriends];
             }
             else {
                 NSLog(@"Error during fetching friends: %@", error);
@@ -182,7 +186,7 @@
             }
         }];
         [connection start];
-    });
+//    });
 }
 
 - (void)facebookSessionStateChanged:(NSNotification*)notification {
@@ -227,6 +231,7 @@
     
     // Register for notifications
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(facebookSessionStateChanged:) name:FBSessionStateChangedNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(contentChanged:) name:NSManagedObjectContextDidSaveNotification object:nil];
 }
 
 - (void)viewDidUnload
@@ -487,6 +492,21 @@
 - (void)controllerDidChangeContent:(NSFetchedResultsController *)controller
 {
     [self.tableView endUpdates];
+}
+
+- (void)contentChanged:(NSNotification *)notification
+{
+    if ([notification object] == [self managedObjectContext]) return;
+    
+    if (![NSThread isMainThread]) {
+        [self performSelectorOnMainThread:@selector(contentChanged:) withObject:notification waitUntilDone:YES];
+        return;
+    }
+    
+    [[self managedObjectContext] mergeChangesFromContextDidSaveNotification:notification];
+    
+    // Friends are ready to go => Start loading locations
+    [self fetchLocationsForAllFriends];
 }
 
 /*
