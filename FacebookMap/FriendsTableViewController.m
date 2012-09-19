@@ -149,7 +149,7 @@
     NSArray *users = [self.fetchedResultsController fetchedObjects];
 //    friends = [friends subarrayWithRange:NSMakeRange(0, 30)];
     NSLog(@"Start fetching locations for %i friends", users.count);
-    [self.detailViewController startDownloadingLocationsForUsers:users];
+    [self.detailViewController startFetchingCheckinsForFriends:users];
 }
 
 // Run this only on the main thread
@@ -381,7 +381,7 @@
     // CoreData
     Friend *user = [self.fetchedResultsController objectAtIndexPath:indexPath];
     cell.textLabel.text = user.name;
-    cell.detailTextLabel.text = ((Checkin *)user.locations.anyObject).location.name; // TODO: get the last known location
+//    cell.detailTextLabel.text = ((Checkin *)user.locations.anyObject).location.name; // TODO: get the last known location
 
     cell.imageView.image = nil;
     cell.imageView.image = [UIImage imageNamed:@"placeholder"];

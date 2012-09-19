@@ -31,6 +31,7 @@
 @property (strong, nonatomic) NSDate *startTime;
 
 @property (nonatomic) BOOL isFetchingAllowed;
+@property (strong, nonatomic) NSManagedObjectContext *managedObjectContext;
 - (void)configureView;
 @end
 
@@ -45,6 +46,7 @@
 @synthesize numberOfLocations = _numberOfLocations;
 @synthesize startTime = _startTime;
 @synthesize isFetchingAllowed = _isFetchingAllowed;
+@synthesize managedObjectContext = _managedObjectContext;
 
 
 - (FileCache *)cache
@@ -66,9 +68,27 @@
     return _locations;
 }
 
+
+- (NSManagedObjectContext *)managedObjectContext
+{
+    if (!_managedObjectContext) {
+        FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+        return appDelegate.managedObjectContext;
+    }
+
+    return _managedObjectContext;
+}
+
+// thread-safe
+// Can be called from another thread
 - (void)reloadAnnotationsFromCoreData
 {
-    FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+    if (![NSThread isMainThread]) {
+        [self performSelectorOnMainThread:@selector(reloadAnnotationsFromCoreData) withObject:nil waitUntilDone:YES];
+        return;
+    }
+    
+    NSLog(@"Refreshing map annotations from CoreData...");
     
     NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Checkin"];
     NSSortDescriptor *sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"id" ascending:YES];
@@ -76,76 +96,58 @@
     request.predicate = nil;
     
     NSError *error;
-    NSArray *locations = [appDelegate.managedObjectContext executeFetchRequest:request error:&error];
+    NSArray *locations = [self.managedObjectContext executeFetchRequest:request error:&error];
     
     if (locations.count > 0) {
         NSLog(@"Adding %i locations on the map.", locations.count);
         
-        dispatch_async(dispatch_get_main_queue(), ^{
+//        dispatch_async(dispatch_get_main_queue(), ^{
             [self.mapView addAnnotations:locations];
-        });
+//        });
+    }
+    else if (locations) {
+        // TODO: Start fetching locations for users?
     }
     else {
-        // TODO: Start fetching locations for users?
+        // TODO: handle error
     }
 }
 
 static NSTimeInterval AnimationDuration = 1;
 
+- (void)showLoadingViewAnimated
+{
+    self.loadingView.hidden = NO;
+    [UIView transitionWithView:self.loadingView duration:AnimationDuration options:UIViewAnimationOptionLayoutSubviews animations:^{
+        //        self.loadingView.alpha = 1;
+        CGRect frame = self.loadingView.frame;
+        frame.origin.y += frame.size.height;
+        self.loadingView.frame = frame;
+    } completion:nil];
+}
+
+- (void)hideLoadingViewAnimated
+{
+    [UIView transitionWithView:self.loadingView duration:AnimationDuration options:UIViewAnimationOptionLayoutSubviews animations:^{
+        CGRect frame = self.loadingView.frame;
+        frame.origin.y -= frame.size.height;
+        self.loadingView.frame = frame;
+    } completion:^(BOOL finished){
+        if (finished) {
+            self.loadingView.hidden = YES;
+        }
+    }];
+}
+
+
 - (void)setNumberOfRunningRequests:(NSInteger)numberOfRunningRequests
 {
     if (numberOfRunningRequests == 0 && self.loadingView.hidden == NO) {
-        // hide loading view
+        [self hideLoadingViewAnimated];
+        
         NSLog(@"Stop time: %@", [NSDate date]);
         NSLog(@"Total %i locations have been harvested", self.numberOfLocations);
         NSLog(@"Total time %f seconds", [[NSDate date] timeIntervalSinceDate:self.startTime]);
-        [UIView transitionWithView:self.loadingView duration:AnimationDuration options:UIViewAnimationOptionLayoutSubviews animations:^{
-            CGRect frame = self.loadingView.frame;
-            frame.origin.y -= frame.size.height;
-            self.loadingView.frame = frame;
-        } completion:^(BOOL finished){
-            if (finished) {
-                self.loadingView.hidden = YES;
-            }
-        }];
-        
-        // this adds locations to CoreData
-        dispatch_queue_t queue = dispatch_queue_create("profile picture downloader", NULL);
-        dispatch_async(queue, ^{
-            NSLog(@"Adding locations into CoreData.");
-            for (NSString *userid in self.locations) {
-                NSArray *locations = [self.locations objectForKey:userid];
-                
-                // Add locations into Core Data
-                FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-                for (NSDictionary<FBGraphPlace> *checkinInfo in locations) {
-//                    NSLog(@"Checkininfo: %@", checkinInfo);
-                    [Checkin checkinWithFacebookInfo:checkinInfo forUser:[self.users objectForKey:userid] inManagedObjectContext:appDelegate.managedObjectContext];
-                    
-                    // NOTE: save coredata here to see the errors immediately
-                }
-                
-                if (locations.count > 0) {
-                    // Save the context.
-                    NSLog(@"Saving locations for user %@", [[self.users objectForKey:userid] valueForKey:@"name"]);
-                    FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-                    NSError *error = nil;
-                    if (![appDelegate.managedObjectContext save:&error]) {
-                        /*
-                         Replace this implementation with code to handle the error appropriately.
-                         
-                         abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                         */
-                        NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
-                        abort();
-                    }
-                }
-            }
-            
-            // add location objects to the map
-            NSLog(@"Adding locations on the map.");
-            [self reloadAnnotationsFromCoreData];
-        });
     }
     
     _numberOfRunningRequests = numberOfRunningRequests;
@@ -154,67 +156,89 @@ static NSTimeInterval AnimationDuration = 1;
 
 #pragma mark - Managing the detail item
 
-// TODO: this is threaded, it shouldn't write to ivars!
-- (void)requestLocationsForUser:(Friend *)user limit:(NSInteger)limit offset:(NSInteger)offset
+- (void)didFetchAllCheckinsForFriend:(Friend *)friend
+{
+    NSLog(@"All locations for friend=%@ has been imported", friend.name);
+}
+
+- (void)didFailFetchingCheckinsForFriend:(Friend *)friend error:(NSError *)error
+{
+    NSLog(@"Error: Can't download locations for friend %@ : %@", friend.name, error.debugDescription);
+}
+
+// Run this only on the main thread
+- (void)fetchCheckinsIntoCoreDataForFriend:(Friend *)friend limit:(NSInteger)limit offset:(NSInteger)offset
 {
     if (!self.isFetchingAllowed) return;
     
-    FBRequestConnection *connection = [[FBRequestConnection alloc] initWithTimeout:120]; // TODO: review the value
-    FBRequest *request = [FBRequest requestForGraphPath:[NSString stringWithFormat:@"%@/locations?limit=%i&offset=%i", user.id, limit, offset]];
-    [connection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
+    NSString *graphPath = [NSString stringWithFormat:@"%@/locations?limit=%i&offset=%i", friend.id, limit, offset];
+    FBRequest *request = [FBRequest requestForGraphPath:graphPath];
+    [request startWithCompletionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
         self.numberOfRunningRequests--;
         if (!self.isFetchingAllowed) return;
         
-        if (!error && result) {
-            NSMutableArray *newLocations = [result objectForKey:@"data"];
-            
-            // add locations to temporary array before showing them on the map
-            NSMutableArray *userLocations = [self.locations objectForKey:user.id];
-            if (!userLocations) {
-                userLocations = [NSMutableArray array];
+        if (result && !error) {
+            // add to data store
+            NSLog(@"Processing locations... (limit=%i, offset=%i, friend=%@)", limit, offset, friend.name);
+            NSArray *checkins = [result objectForKey:@"data"];
+            if (checkins.count > 0) {
+                
+                // Import and save CoreData in the background
+                // It creates it's own context
+                dispatch_queue_t queue = dispatch_queue_create("location importer", NULL);
+                dispatch_async(queue, ^{
+                    NSManagedObjectContext *context = [[NSManagedObjectContext alloc] init];
+                    FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+                    context.persistentStoreCoordinator = appDelegate.persistentStoreCoordinator;
+                    for (NSDictionary<FBGraphObject> *checkin in checkins) {
+                        [Checkin checkinWithFacebookInfo:checkin forUser:friend inManagedObjectContext:context];
+                    }
+                    
+                    // save context
+                    NSError *error;
+                    if (![context save:&error]) {
+                        // NOTE: Handle error?
+                        NSLog(@"Error: Couldn't save locations (limit=%i, offset=%i, friend=%@)", limit, offset, friend.name);
+                        NSLog(@"Error: description: %@", [error debugDescription]);
+                    }
+                    
+                    NSLog(@"Imported %i locations (limit=%i, offset=%i, friend=%@)", checkins.count, limit, offset, friend.name);
+                    
+                    // Notify mapview to reload its data
+                    [self reloadAnnotationsFromCoreData];
+                });
+                
+                // check for additional data (recursion)
+                if ([[result objectForKey:@"paging"] objectForKey:@"next"]) {
+                    [self fetchCheckinsIntoCoreDataForFriend:friend limit:limit offset:offset+limit];
+                }
+                else {
+                    // this was the last page
+                    [self didFetchAllCheckinsForFriend:friend];
+                }
             }
-            [userLocations addObjectsFromArray:newLocations];
-            [self.locations setObject:userLocations forKey:user.id];
-            
-            self.numberOfLocations += newLocations.count;
-            NSLog(@"Harvested %i locations (p=%i) for '%@'", newLocations.count, offset/limit, user.name);
-            
-            if ([[result objectForKey:@"paging"] objectForKey:@"next"] && newLocations.count > 0) {
-                // Go to the next page
-                [self requestLocationsForUser:user limit:limit offset:offset+limit];
+            else {
+                // this was the last page
+                [self didFetchAllCheckinsForFriend:friend];
             }
-//            else {
-//                // no other locations available
-//                NSLog(@"All locations for '%@' have been harvested.", user.name);
-//            }
         }
         else {
-            // TODO: do something with the error
-            NSLog(@"Error during fetching locations: %@", error);
+            [self didFailFetchingCheckinsForFriend:friend error:error];
         }
     }];
-    [connection start];
     self.numberOfRunningRequests++;
-    
 }
 
-- (void)startDownloadingLocationsForUsers:(NSArray *)users
+- (void)startFetchingCheckinsIntoCoreDataForFriend:(Friend *)friend
 {
-    // save users
-    NSMutableDictionary *usersDictionary = [NSMutableDictionary dictionaryWithCapacity:users.count];
-    for (Friend *user in users) {
-        [usersDictionary setObject:user forKey:user.id];
-    }
-    self.users = usersDictionary;
-    
+    if (!self.isFetchingAllowed) return;
+    [self fetchCheckinsIntoCoreDataForFriend:friend limit:PAGING_LIMIT offset:0];
+}
+
+- (void)startFetchingCheckinsForFriends:(NSArray *)friends
+{    
     // show loading view
-    self.loadingView.hidden = NO;
-    [UIView transitionWithView:self.loadingView duration:AnimationDuration options:UIViewAnimationOptionLayoutSubviews animations:^{
-        //        self.loadingView.alpha = 1;
-        CGRect frame = self.loadingView.frame;
-        frame.origin.y += frame.size.height;
-        self.loadingView.frame = frame;
-    } completion:nil];
+    [self showLoadingViewAnimated];
     
     // start counting
     self.startTime = [NSDate date];
@@ -222,19 +246,11 @@ static NSTimeInterval AnimationDuration = 1;
     NSLog(@"Paging limit = %i", PAGING_LIMIT);
     
     self.isFetchingAllowed = YES;
-    for (Friend *user in users) {
-        [self requestLocationsForUser:user limit:PAGING_LIMIT offset:0];
+    for (Friend *friend in friends) {
+        [self startFetchingCheckinsIntoCoreDataForFriend:friend];
     }
 }
 
-//- (void)addLocations:(NSMutableArray *)locations forUser:(Friend *)user
-//{
-//    for (NSDictionary<FBGraphObject> *checkinInfo in locations) {
-//        
-//        // adding just one annotation is a little bit faster than doing it in a batch
-//        [self.mapView addAnnotation:checkin];
-//    }
-//}
 
 - (void)setDetailItem:(id)newDetailItem
 {

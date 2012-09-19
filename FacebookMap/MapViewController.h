@@ -15,6 +15,6 @@
 
 @property (strong, nonatomic) id detailItem;
 
-- (void)startDownloadingLocationsForUsers:(NSArray *)users;
+- (void)startFetchingCheckinsForFriends:(NSArray *)users;
 
 @end
