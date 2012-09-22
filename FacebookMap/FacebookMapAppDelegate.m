@@ -125,9 +125,9 @@ NSString *const FBSessionStateChangedNotification = @"com.tomkraina.FacebookMap:
     NSLog(@"Deleting CoreData objects...");
     
     [self.managedObjectContext performBlockAndWait:^{
-        NSArray *entities = [NSArray arrayWithObjects:@"Friend", @"Checkins", nil];
+        NSArray *entities = [NSArray arrayWithObjects:@"Friend", @"Checkin", @"Location", nil];
         for (NSString *entity in entities) {
-            NSFetchRequest * request = [[NSFetchRequest alloc] initWithEntityName:@"Friend"];
+            NSFetchRequest * request = [[NSFetchRequest alloc] initWithEntityName:entity];
             request.includesPropertyValues = NO; //only fetch the managedObjectID
             request.includesSubentities = NO;
             

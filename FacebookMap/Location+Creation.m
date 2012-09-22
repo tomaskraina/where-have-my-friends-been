@@ -36,14 +36,20 @@
         location = [NSEntityDescription insertNewObjectForEntityForName:@"Location" inManagedObjectContext:context];
         location.id = placeInfo.id;
         location.name = placeInfo.name;
-        if ([placeInfo.location conformsToProtocol:@protocol(FBGraphLocation)]) {
-            location.city = placeInfo.location.city;
-            location.country = placeInfo.location.country;
-            location.latitude = [NSNumber numberWithDouble:[placeInfo.location.latitude doubleValue]];
-            location.longitude = [NSNumber numberWithDouble:[placeInfo.location.longitude doubleValue]];
+        if ([placeInfo.location isKindOfClass:[FBGraphObject class]]) {
+            id<FBGraphLocation> locationInfo = placeInfo.location;
+            location.city = locationInfo.city;
+            location.country = locationInfo.country;
+            if ([locationInfo.longitude doubleValue] == 0) {
+                NSLog(@"Error: invalid latitude or longitude: %@", locationInfo);
+            }
+            location.latitude = locationInfo.latitude;
+            location.longitude = locationInfo.longitude;
         }
         else {
-            NSLog(@"Error: location is a member of '%@'", [[placeInfo.location class] description]);
+            NSLog(@"Error: invalid location: '%@'", placeInfo.location);
+            [context deleteObject:location];
+            return nil;
         }
     }
     else {

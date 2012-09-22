@@ -45,7 +45,7 @@
         checkin.location = [Location locationWithFacebookInfo:[checkinInfo objectForKey:@"place"] inManagedObjectContext:context];
         if (!checkin.location) {
             NSLog(@"Error creating Locations with data: %@", [checkinInfo objectForKey:@"place"]);
-            checkin = nil; // TODO: Does it work?
+            [context deleteObject:checkin];
             return nil;
         }
         [checkin addWhoHasBeenThereObject:user];
