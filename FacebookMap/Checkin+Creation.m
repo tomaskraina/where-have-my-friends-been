@@ -9,6 +9,8 @@
 #import "Checkin+Creation.h"
 #import "Location+Creation.h"
 
+#define FACEBOOK_DATETIME_FORMAT @"yyyy-MM-dd'T'HH:mm:ssZZZZ"
+
 @implementation Checkin (Creation)
 
 + (Checkin *)checkinWithFacebookInfo:(NSDictionary *)checkinInfo
@@ -40,8 +42,11 @@
         checkin.type = [checkinInfo objectForKey:@"type"];
         checkin.from_id = [[checkinInfo objectForKey:@"from"] objectForKey:@"id"];
         checkin.from_name = [[checkinInfo objectForKey:@"from"] objectForKey:@"name"];
+
         // TODO: convert string to NSDate
-//        checkin.created_time = [checkinInfo objectForKey:@"created_time"];
+        NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+        dateFormatter.dateFormat = FACEBOOK_DATETIME_FORMAT;
+        checkin.created_time = [dateFormatter dateFromString:[checkinInfo objectForKey:@"created_time"]];
         checkin.location = [Location locationWithFacebookInfo:[checkinInfo objectForKey:@"place"] inManagedObjectContext:context];
         if (!checkin.location) {
             NSLog(@"Error creating Locations with data: %@", [checkinInfo objectForKey:@"place"]);

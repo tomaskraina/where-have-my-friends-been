@@ -34,7 +34,10 @@
 
 -(NSString *)subtitle
 {
-    return self.location.name;
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    dateFormatter.timeStyle = NSDateFormatterShortStyle;
+    dateFormatter.dateStyle = NSDateFormatterMediumStyle;
+    return [NSString stringWithFormat:@"%@ on %@", self.location.name, [dateFormatter stringFromDate:self.created_time]];
 }
 
 @end
