@@ -44,6 +44,10 @@ NSString *const FBSessionStateChangedNotification = @"com.tomkraina.FacebookMap:
     UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
     UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
     splitViewController.delegate = (id)navigationController.topViewController;
+    
+    // don't show masterViewController with a swipe gesture (iOS >= 5.1)
+    if ([splitViewController respondsToSelector:@selector(setPresentsWithGesture:)]) splitViewController.presentsWithGesture = NO;
+
 
     UINavigationController *masterNavigationController = [splitViewController.viewControllers objectAtIndex:0];
     FriendsTableViewController *controller = (FriendsTableViewController *)masterNavigationController.topViewController;
