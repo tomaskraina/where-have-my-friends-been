@@ -16,10 +16,11 @@
 #import "Checkin+Creation.h"
 #import "Checkin+MapAnnotation.h"
 #import "FriendsTableViewController.h"
+#import "CheckinViewController.h"
 
 #define PAGING_LIMIT 30
 
-@interface MapViewController () <MKMapViewDelegate>
+@interface MapViewController () <MKMapViewDelegate, NSFetchedResultsControllerDelegate, CheckinViewControllerDelegate>
 @property (strong, nonatomic) NSMutableDictionary *locations;
 @property (strong, nonatomic) NSDictionary *users;
 
@@ -34,8 +35,13 @@
 @property (nonatomic) BOOL isFetchingAllowed;
 @property (strong, nonatomic) NSManagedObjectContext *managedObjectContext;
 @property (nonatomic) dispatch_queue_t fetchingQueue;
+@property (nonatomic) dispatch_group_t fetchingGroup;
+
+@property (nonatomic, strong) NSFetchedResultsController *fetchedResultsController;
 
 - (void)configureView;
+//- (IBAction)dismissChechinModalView:(UIStoryboardSegue *)sender;
+- (void)dismissCheckinInfo:(CheckinViewController *)sender;
 @end
 
 @implementation MapViewController
@@ -51,17 +57,37 @@
 @synthesize isFetchingAllowed = _isFetchingAllowed;
 @synthesize managedObjectContext = _managedObjectContext;
 @synthesize fetchingQueue = _fetchingQueue;
+@synthesize fetchingGroup = _fetchingGroup;
 @synthesize friendViewController = _friendViewController;
 
+@synthesize fetchedResultsController = __fetchedResultsController;
 
-- (FileCache *)cache
+//- (FileCache *)cache
+//{
+//    if (!_cache) {
+//        _cache = [[FileCache alloc] init];
+//        _cache.maxSize = 10;
+//        _cache.domain = @"thumbnails";
+//    }
+//    return  _cache;
+//}
+
+- (dispatch_queue_t)fetchingQueue
 {
-    if (!_cache) {
-        _cache = [[FileCache alloc] init];
-        _cache.maxSize = 10;
-        _cache.domain = @"thumbnails";
+    if (_fetchingQueue == NULL) {
+        _fetchingQueue = dispatch_queue_create("locationObjectsDownloader", NULL);
     }
-    return  _cache;
+    
+    return _fetchingQueue;
+}
+
+- (dispatch_group_t)fetchingGroup
+{
+    if (_fetchingGroup == NULL) {
+        _fetchingGroup = dispatch_group_create();
+    }
+
+    return _fetchingGroup;
 }
 
 - (NSMutableDictionary *)locations
@@ -88,34 +114,34 @@
 // Can be called from another thread
 - (void)reloadAnnotationsFromCoreData
 {
-    if (![NSThread isMainThread]) {
-        [self performSelectorOnMainThread:@selector(reloadAnnotationsFromCoreData) withObject:nil waitUntilDone:YES];
-        return;
-    }
+    NSLog(@"Refreshing map annotations from CoreData...");
     
-//    NSLog(@"Refreshing map annotations from CoreData...");
+    // TODO: fetch only changed objects
     
     NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Checkin"];
     NSSortDescriptor *sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"id" ascending:YES];
     request.sortDescriptors = [NSArray arrayWithObject:sortDescriptor];
     request.predicate = nil;
     
-    NSError *error;
-    NSArray *locations = [self.managedObjectContext executeFetchRequest:request error:&error];
-    
-    if (locations.count > 0) {
-//        NSLog(@"Adding %i locations on the map.", locations.count);
+    [self.managedObjectContext performBlock:^{
+        NSError *error;
+        NSArray *locations = [self.managedObjectContext executeFetchRequest:request error:&error];
+        
+        if (locations.count > 0) {
+            NSLog(@"Adding %i locations on the map.", locations.count);
         
 //        dispatch_async(dispatch_get_main_queue(), ^{
             [self.mapView addAnnotations:locations];
 //        });
-    }
-    else if (locations) {
-        // TODO: Start fetching locations for users?
-    }
-    else {
-        // TODO: handle error
-    }
+        }
+        else if (locations) {
+            // TODO: Start fetching locations for users?
+        }
+        else {
+            // TODO: handle error
+        }
+    }];
+
 }
 
 static NSTimeInterval AnimationDuration = 1;
@@ -163,13 +189,19 @@ static NSTimeInterval AnimationDuration = 1;
     NSLog(@"Total %i locations have been imported", self.numberOfLocations);
     NSLog(@"Total time %f seconds", [[NSDate date] timeIntervalSinceDate:self.startTime]);
     
-    dispatch_release(self.fetchingQueue);
+//    dispatch_release(self.fetchingQueue);
     [self hideLoadingViewAnimated];
+    
+    // Tell friendsTableViewController to reload it's data
+    [self.friendViewController.tableView reloadData];
 }
 
 - (void)didFetchAllCheckinsForFriend:(Friend *)friend
 {
     NSLog(@"All locations for friend=%@ has been imported", friend.username);
+    
+    // Notify mapview to reload its data
+//    [self reloadAnnotationsFromCoreData];
 }
 
 - (void)didFailFetchingCheckinsForFriend:(Friend *)friend error:(NSError *)error
@@ -185,46 +217,61 @@ static NSTimeInterval AnimationDuration = 1;
     NSString *graphPath = [NSString stringWithFormat:@"%@/locations?limit=%i&offset=%i", friend.id, limit, offset];
     FBRequest *request = [FBRequest requestForGraphPath:graphPath];
     [request startWithCompletionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
-        self.numberOfRunningRequests--;
-        if (!self.isFetchingAllowed) return;
+        if (!self.isFetchingAllowed) {
+            self.numberOfRunningRequests--;
+            return;
+        }
         
         if (result && !error) {
             // add to data store
-            NSLog(@"Processing locations... (limit=%i, offset=%i, friend=%@)", limit, offset, friend.username);
+//            NSLog(@"Processing locations... (limit=%i, offset=%i, friend=%@)", limit, offset, friend.username);
             NSArray *checkins = [result objectForKey:@"data"];
             if (checkins.count > 0) {
                 
                 // Import and save CoreData in the background
                 // It creates it's own context
-//                dispatch_queue_t queue = dispatch_queue_create("location importer", NULL);
-//                dispatch_queue_t queue = self.fetchingQueue;
-//                dispatch_async(queue, ^{
-//                    NSManagedObjectContext *context = [[NSManagedObjectContext alloc] init];
-//                    FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-//                    context.persistentStoreCoordinator = appDelegate.persistentStoreCoordinator;
-                NSManagedObjectContext *context = self.managedObjectContext;
+                dispatch_group_async(self.fetchingGroup, self.fetchingQueue, ^{
+                    NSManagedObjectContext *context = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSConfinementConcurrencyType];
+                    context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy;
+                    self.managedObjectContext.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy;
+                    FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+                    context.persistentStoreCoordinator = appDelegate.persistentStoreCoordinator;
+                    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(contextChanged:) name:NSManagedObjectContextDidSaveNotification object:context];
                 
                     for (NSDictionary<FBGraphObject> *checkin in checkins) {
                         // Don't bother adding objects without no place...
                         if ([[checkin objectForKey:@"place"] conformsToProtocol:@protocol(FBGraphPlace)]) {
                             [Checkin checkinWithFacebookInfo:checkin forUser:friend inManagedObjectContext:context];
+
+                            dispatch_sync(dispatch_get_main_queue(), ^{
+                                self.numberOfLocations++;
+                            });
                         }
                     }
                     
                     // save context
+//                    NSLog(@"Saving context...");
                     NSError *error;
-                    NSLog(@"Saving context...");
                     if (![context save:&error]) {
-                        // NOTE: Handle error?
-                        NSLog(@"Error: Couldn't save locations (limit=%i, offset=%i, friend=%@)", limit, offset, friend.username);
-                        NSLog(@"Error: description: %@", [error debugDescription]);
+                        NSArray *conflicts = [error.userInfo objectForKey:@"conflictList"];
+                        if (conflicts) {
+                            NSMergePolicy *policy = [[NSMergePolicy alloc] initWithMergeType:NSMergeByPropertyObjectTrumpMergePolicyType];
+                            [policy resolveConflicts:conflicts error:nil];
+                        }
+                        else{
+                            NSLog(@"Error: Couldn't save locations (limit=%i, offset=%i, friend=%@)", limit, offset, friend.username);
+                            NSLog(@"Error: description: %@", [error debugDescription]);
+                        }
                     }
                     
                     NSLog(@"Imported %i locations (limit=%i, offset=%i, friend=%@)", checkins.count, limit, offset, friend.username);
                     
-                    // Notify mapview to reload its data
-                    [self reloadAnnotationsFromCoreData];
-//                });
+                    [[NSNotificationCenter defaultCenter] removeObserver:self name:NSManagedObjectContextDidSaveNotification object:context];
+                    
+                    dispatch_sync(dispatch_get_main_queue(), ^{
+                        self.numberOfRunningRequests--;
+                    });
+                });
                 
                 // check for additional data (recursion)
                 if ([[result objectForKey:@"paging"] objectForKey:@"next"]) {
@@ -237,10 +284,12 @@ static NSTimeInterval AnimationDuration = 1;
             }
             else {
                 // this was the last page
+                self.numberOfRunningRequests--;
                 [self didFetchAllCheckinsForFriend:friend];
             }
         }
         else {
+            self.numberOfRunningRequests--;
             [self didFailFetchingCheckinsForFriend:friend error:error];
         }
     }];
@@ -253,8 +302,25 @@ static NSTimeInterval AnimationDuration = 1;
 //    [self fetchCheckinsIntoCoreDataForFriend:friend limit:PAGING_LIMIT offset:0];
 //}
 
+- (void)contextChanged:(NSNotification *)notification
+{
+    if (notification.object == self.managedObjectContext) {
+        return;
+    }
+    
+    [self.managedObjectContext performBlockAndWait:^{
+        [self.managedObjectContext mergeChangesFromContextDidSaveNotification:notification];
+    }];
+    
+    NSLog(@"Changes merged.");
+}
+
+// call this only for the first time as an import method
 - (void)startFetchingCheckinsForFriends:(NSArray *)friends
 {
+    if (friends.count == 0) return;
+    
+    // because the array can be changed?
     NSArray *__friends = [friends copy];
     
     // show loading view
@@ -265,8 +331,10 @@ static NSTimeInterval AnimationDuration = 1;
     NSLog(@"Start time: %@", self.startTime);
     NSLog(@"Paging limit = %i", PAGING_LIMIT);
     
+    // prepare enviromnent
+    [self fetchedResultsController]; // this sets up the fetchedResultsController
     self.isFetchingAllowed = YES;
-    self.fetchingQueue = dispatch_queue_create("location importer", NULL);
+
     for (Friend *friend in __friends) {
         [self fetchCheckinsIntoCoreDataForFriend:friend limit:PAGING_LIMIT offset:0];
     }
@@ -312,6 +380,11 @@ static NSTimeInterval AnimationDuration = 1;
     // Should be always on the main thread (since it's called from UI)
     FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
     [appDelegate deleteCoreData];
+    
+    [self.mapView removeAnnotations:self.mapView.annotations];
+    
+    // Tell friendsTableViewController to reload it's data
+    [self.friendViewController.tableView reloadData];
 }
 
 #pragma mark - TestFlight
@@ -341,9 +414,31 @@ static NSTimeInterval AnimationDuration = 1;
 
 #pragma mark - UIStoryboardSegue
 
+// When the cancel button is set with an unwind action it crashes with:
+// *** Terminating app due to uncaught exception 'NSInvalidUnarchiveOperationException', reason: 'Could not instantiate class named UIStoryboardUnwindSegueTemplate'
+//- (BOOL)canPerformUnwindSegueAction:(SEL)action fromViewController:(UIViewController *)fromViewController withSender:(id)sender
+//{
+//    return YES;
+//}
+//
+//- (IBAction)dismissChechinModalView:(UIStoryboardSegue *)sender
+//{
+//    NSLog(@"%s called", __PRETTY_FUNCTION__);
+//}
+
+- (void)dismissCheckinInfo:(CheckinViewController *)sender
+{
+    [self dismissModalViewControllerAnimated:YES];
+}
+
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
 {
-    
+    if ([segue.identifier isEqualToString:@"Show checkin"]) {
+        CheckinViewController *checkinViewController = [[(UINavigationController *)segue.destinationViewController viewControllers] lastObject];
+        checkinViewController.delegate = self;
+        Checkin *checkin = [((MKAnnotationView *)sender) annotation];
+        [checkinViewController configure:checkin];
+    }
 }
 
 #pragma mark - View lifecycle
@@ -360,7 +455,10 @@ static NSTimeInterval AnimationDuration = 1;
     [self configureView];
     
     // Register for notifications
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(facebookSessionStateChanged:) name:FBSessionStateChangedNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(facebookSessionStateChanged:)
+                                                 name:FBSessionStateChangedNotification
+                                               object:nil];
     
     // Check the session for a cached token to show the proper authenticated
     // UI. However, since this is not user intitiated, do not show the login UX.
@@ -391,7 +489,8 @@ static NSTimeInterval AnimationDuration = 1;
     }
     else {
         // try to get cached location objects
-        [self reloadAnnotationsFromCoreData];
+//        [self reloadAnnotationsFromCoreData];
+//        [self.mapView addAnnotations:self.fetchedResultsController.fetchedObjects];
     }
     
 }
@@ -449,7 +548,7 @@ static NSTimeInterval AnimationDuration = 1;
     MKAnnotationView *annotationView = [mapView dequeueReusableAnnotationViewWithIdentifier:Identifier];
     if (!annotationView) {
         annotationView = [[MKPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:Identifier];
-//        annotationView.rightCalloutAccessoryView = [UIButton buttonWithType:UIButtonTypeDetailDisclosure];
+        annotationView.rightCalloutAccessoryView = [UIButton buttonWithType:UIButtonTypeDetailDisclosure];
         annotationView.leftCalloutAccessoryView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 32, 32)];
         annotationView.canShowCallout = YES;
     }
@@ -459,21 +558,25 @@ static NSTimeInterval AnimationDuration = 1;
 
 - (void)mapView:(MKMapView *)mapView didSelectAnnotationView:(MKAnnotationView *)view
 {
+    // Friend can't be user in async call since it's a managed object
+    Checkin *checkin = (Checkin *)view.annotation;
+    NSString *userid = [[((Friend *)[checkin.whoHasBeenThere anyObject]) id] copy];
+    
     dispatch_queue_t queue = dispatch_queue_create("profile picture downloader", NULL);
     dispatch_async(queue, ^{
-        NSDictionary<FBGraphUser> *user = (NSDictionary<FBGraphUser>*)[(PlaceMapAnnotation *)view.annotation infoDictionary];
-        NSData *imageData = [self.cache dataForKey:user.id];
+        NSData *imageData = [self.friendViewController.cache dataForKey:userid];
         
         if (!imageData) {
-            // download
-            NSURL *url = [NSURL URLWithString:[FBGraphBasePath stringByAppendingFormat:@"/%@/picture?type=%@", user.id, @"square"]];
+            NSURL *url = [NSURL URLWithString:[FBGraphBasePath stringByAppendingFormat:@"/%@/picture?type=%@", userid, @"square"]];
+            NSLog(@"dowloading image: %@", url.absoluteString);
             imageData = [NSData dataWithContentsOfURL:url];
-            [self.cache saveData:imageData forKey:user.id];
+            [self.friendViewController.cache saveData:imageData forKey:userid];
         }
         
         UIImage *image = [UIImage imageWithData:imageData];
+        
         dispatch_async(dispatch_get_main_queue(), ^{
-            [(UIImageView *)view.leftCalloutAccessoryView setImage:image];
+            ((UIImageView *)view.leftCalloutAccessoryView).image = image;
         });
     });
 }
@@ -481,12 +584,12 @@ static NSTimeInterval AnimationDuration = 1;
 - (void)mapView:(MKMapView *)mapView annotationView:(MKAnnotationView *)view calloutAccessoryControlTapped:(UIControl *)control
 {
     // fire segue
-//    [self performSegueWithIdentifier:@"Show photos at location" sender:view];
+    [self performSegueWithIdentifier:@"Show checkin" sender:view];
     
 }
 
-- (void)mapView:(MKMapView *)mapView didAddAnnotationViews:(NSArray *)views
-{
+//- (void)mapView:(MKMapView *)mapView didAddAnnotationViews:(NSArray *)views
+//{
 //    if (self.selectedPlace) {
 //        for (MKAnnotationView *view in views) {
 //            MapAnnotation *annotation = (MapAnnotation *)view.annotation;
@@ -496,6 +599,71 @@ static NSTimeInterval AnimationDuration = 1;
 //            }
 //        }
 //    }
+//}
+
+
+#pragma mark - Fetched results controller
+
+- (NSFetchedResultsController *)fetchedResultsController
+{
+    if (__fetchedResultsController != nil) {
+        return __fetchedResultsController;
+    }
+    
+    // Set up the fetched results controller.
+    // Create the fetch request for the entity.
+    NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
+    // Edit the entity name as appropriate.
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"Checkin" inManagedObjectContext:self.managedObjectContext];
+    [fetchRequest setEntity:entity];
+    
+    // Set the batch size to a suitable number.
+    [fetchRequest setFetchBatchSize:100];
+    
+    // Set up sort descriptors.
+    // Use localizedStandardCompare: (http://stackoverflow.com/questions/7199934/nsfetchedresultscontroller-v-s-uilocalizedindexedcollation)
+    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"id" ascending:YES];
+    [fetchRequest setSortDescriptors:[NSArray arrayWithObject:sortDescriptor]];
+    
+    // Edit the section name key path and cache name if appropriate.
+    // nil for section name key path means "no sections".
+    NSFetchedResultsController *aFetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:self.managedObjectContext sectionNameKeyPath:nil cacheName:nil];
+    aFetchedResultsController.delegate = self;
+    self.fetchedResultsController = aFetchedResultsController;
+    
+	NSError *error = nil;
+	if (![self.fetchedResultsController performFetch:&error]) {
+	    NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
+	    abort();
+	}
+    
+    return __fetchedResultsController;
+}
+
+- (void)controller:(NSFetchedResultsController *)controller didChangeObject:(id)anObject
+       atIndexPath:(NSIndexPath *)indexPath forChangeType:(NSFetchedResultsChangeType)type
+      newIndexPath:(NSIndexPath *)newIndexPath
+{
+    
+    switch(type) {
+        case NSFetchedResultsChangeInsert:
+            [self.mapView addAnnotation:anObject];
+            break;
+            
+        case NSFetchedResultsChangeDelete:
+            [self.mapView removeAnnotation:anObject];
+            break;
+            
+        case NSFetchedResultsChangeUpdate:
+            [self.mapView removeAnnotation:anObject];
+            [self.mapView addAnnotation:anObject];
+            break;
+    }
+}
+
+- (void)controllerDidChangeContent:(NSFetchedResultsController *)controller
+{
+//    [self.mapView addAnnotations:controller.fetchedObjects];
 }
 
 @end

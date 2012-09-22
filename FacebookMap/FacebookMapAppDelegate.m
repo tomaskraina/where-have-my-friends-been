@@ -38,6 +38,8 @@ NSString *const FBSessionStateChangedNotification = @"com.tomkraina.FacebookMap:
     
     [TestFlight takeOff:@"6f173bb30d4011f1c593d4d4dec1b871_MTMyNTU2MjAxMi0wOS0xNSAxNDozOToyNC4zNzg2NzE"];
     
+//    [self deleteCoreData];
+    
     // Override point for customization after application launch.
     UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
     UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
@@ -118,32 +120,34 @@ NSString *const FBSessionStateChangedNotification = @"com.tomkraina.FacebookMap:
 {
     NSLog(@"Deleting CoreData objects...");
     
-    NSArray *entities = [NSArray arrayWithObjects:@"Friend", @"Checkins", nil];
-    for (NSString *entity in entities) {
-        NSFetchRequest * request = [[NSFetchRequest alloc] initWithEntityName:@"Friend"];
-        request.includesPropertyValues = NO; //only fetch the managedObjectID
-        request.includesSubentities = NO;
+    [self.managedObjectContext performBlockAndWait:^{
+        NSArray *entities = [NSArray arrayWithObjects:@"Friend", @"Checkins", nil];
+        for (NSString *entity in entities) {
+            NSFetchRequest * request = [[NSFetchRequest alloc] initWithEntityName:@"Friend"];
+            request.includesPropertyValues = NO; //only fetch the managedObjectID
+            request.includesSubentities = NO;
+            
+            NSError *error;
+            NSArray *allObjects = [self.managedObjectContext executeFetchRequest:request error:&error];
+            if (!allObjects || error) {
+                NSLog(@"Error: Could't load data to delete: %@", error.debugDescription);
+                abort();
+            }
+            for (NSManagedObject *object in allObjects) {
+                [self.managedObjectContext deleteObject:object];
+            }
+        }
         
-        NSError *error;
-        NSArray *allObjects = [self.managedObjectContext executeFetchRequest:request error:&error];
-        if (!allObjects || error) {
-            NSLog(@"Error: Could't load data to delete: %@", error.debugDescription);
+        // Save changes
+        NSLog(@"Saving context...");
+        NSError *saveError;
+        if (![self.managedObjectContext save:&saveError]) {
+            NSLog(@"Error with deleting friends: %@", saveError.debugDescription);
             abort();
         }
-        for (NSManagedObject *object in allObjects) {
-            [self.managedObjectContext deleteObject:object];
-        }
-    }
-
-    // Save changes
-    NSLog(@"Saving context...");
-    NSError *saveError;
-    if (![self.managedObjectContext save:&saveError]) {
-        NSLog(@"Error with deleting friends: %@", saveError.debugDescription);
-        abort();
-    }
-    
-    NSLog(@"Objects deleted.");
+        
+        NSLog(@"Objects deleted.");
+    }];
 }
 
 #pragma mark - Core Data stack
@@ -162,8 +166,9 @@ NSString *const FBSessionStateChangedNotification = @"com.tomkraina.FacebookMap:
     NSPersistentStoreCoordinator *coordinator = [self persistentStoreCoordinator];
     if (coordinator != nil)
     {
-        __managedObjectContext = [[NSManagedObjectContext alloc] init];
+        __managedObjectContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
         [__managedObjectContext setPersistentStoreCoordinator:coordinator];
+        __managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy;
     }
     return __managedObjectContext;
 }

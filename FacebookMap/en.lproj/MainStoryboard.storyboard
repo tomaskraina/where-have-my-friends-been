@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="2.0" toolsVersion="2840" systemVersion="12B19" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" initialViewController="5">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="2.0" toolsVersion="2840" systemVersion="12C54" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" initialViewController="5">
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="1926"/>
     </dependencies>
@@ -82,11 +82,83 @@
                         <outlet property="loadingView" destination="wr3-ub-3fK" id="2Zh-si-e6k"/>
                         <outlet property="mapView" destination="aR5-Wb-4aX" id="sur-ay-BBU"/>
                         <segue destination="iXr-oB-48x" kind="modal" identifier="login" modalPresentationStyle="formSheet" id="Df8-f2-cwF"/>
+                        <segue destination="JA1-Ww-4y0" kind="modal" identifier="Show checkin" modalPresentationStyle="formSheet" id="jh3-MD-Efl"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="15" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="448" y="248"/>
+        </scene>
+        <!--Checkin View Controller-->
+        <scene sceneID="Xgw-Ig-f4h">
+            <objects>
+                <viewController id="4Kq-tE-ba4" customClass="CheckinViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="adD-1g-zwz">
+                        <rect key="frame" x="0.0" y="64" width="540" height="556"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" id="mHj-O6-Hkt">
+                                <rect key="frame" x="30" y="20" width="480" height="360"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                            </imageView>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="fWS-t1-WKi">
+                                <rect key="frame" x="126" y="399" width="288" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="AfF-JB-0qS">
+                                <rect key="frame" x="126" y="428" width="288" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="gnT-Xf-pFu">
+                                <rect key="frame" x="126" y="457" width="288" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="ay0-N6-e4t">
+                                <rect key="frame" x="126" y="486" width="288" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="GOw-pC-hQC">
+                                <rect key="frame" x="126" y="515" width="288" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="i54-hL-RTc">
+                        <barButtonItem key="rightBarButtonItem" style="done" systemItem="cancel" id="SHI-VR-ulu">
+                            <connections>
+                                <action selector="dismissPressed:" destination="4Kq-tE-ba4" id="X7k-ei-Gvp"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                    <connections>
+                        <outlet property="datetimeLabel" destination="ay0-N6-e4t" id="q2p-CM-G2x"/>
+                        <outlet property="imageView" destination="mHj-O6-Hkt" id="sWz-7F-2PA"/>
+                        <outlet property="messageLabel" destination="GOw-pC-hQC" id="tfD-ht-omP"/>
+                        <outlet property="placeInfoLabel" destination="gnT-Xf-pFu" id="ZHa-2a-fWB"/>
+                        <outlet property="typeLabel" destination="fWS-t1-WKi" id="SyC-0Y-nn3"/>
+                        <outlet property="userInfoLabel" destination="AfF-JB-0qS" id="oRZ-fP-lP2"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="GsQ-6O-ChE" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2054" y="292"/>
         </scene>
         <!--Split View Controller-->
         <scene sceneID="18">
@@ -211,7 +283,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="bZV-DL-6aV" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1292" y="322"/>
+            <point key="canvasLocation" x="1448" y="-522"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="50">
@@ -231,6 +303,24 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="49" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-366" y="248"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="N3q-f3-Jfo">
+            <objects>
+                <navigationController id="JA1-Ww-4y0" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="mB4-ZR-5EX">
+                        <rect key="frame" x="0.0" y="0.0" width="768" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="4Kq-tE-ba4" kind="relationship" relationship="rootViewController" id="vpG-ZV-16j"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="IdY-qG-Jyt" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1448" y="292"/>
         </scene>
     </scenes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">

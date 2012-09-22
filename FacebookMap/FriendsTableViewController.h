@@ -10,12 +10,14 @@
 #import <CoreData/CoreData.h>
 
 @class MapViewController;
+@class FileCache;
 
 @interface FriendsTableViewController : UITableViewController <NSFetchedResultsControllerDelegate>
 
 @property (strong, nonatomic) MapViewController *detailViewController;
 @property (strong, nonatomic) NSFetchedResultsController *fetchedResultsController;
 @property (strong, nonatomic) NSManagedObjectContext *managedObjectContext;
+@property (strong, nonatomic, readonly) FileCache *cache;
 
 - (void)startFetchingUsersIntoCoreData;
 

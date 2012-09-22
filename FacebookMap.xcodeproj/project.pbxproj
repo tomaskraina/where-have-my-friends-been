@@ -26,6 +26,9 @@
 		2CDF667E1603DD8A0091D2D4 /* LogInViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF667D1603DD8A0091D2D4 /* LogInViewController.m */; };
 		9C79EE271606647B0096C5D4 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C79EE261606647B0096C5D4 /* libz.dylib */; };
 		9C79EE2D1606705B0096C5D4 /* libTestFlight.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C79EE291606705B0096C5D4 /* libTestFlight.a */; };
+		9C8380DB160CA0F300A85C3D /* CheckinViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C8380DA160CA0F300A85C3D /* CheckinViewController.m */; };
+		9CC58596160CCA9500CD470B /* Icon-iPad.png in Resources */ = {isa = PBXBuildFile; fileRef = 9CC58595160CCA9500CD470B /* Icon-iPad.png */; };
+		9CC58599160CCA9B00CD470B /* Icon-iPad@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9CC58598160CCA9B00CD470B /* Icon-iPad@2x.png */; };
 		9CCFE2FD1607DC9800B6702E /* Friend+Creation.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CCFE2FC1607DC9800B6702E /* Friend+Creation.m */; };
 		9CCFE30F1607E61E00B6702E /* Checkin+Creation.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CCFE30E1607E61E00B6702E /* Checkin+Creation.m */; };
 		9CCFE3121607EEC900B6702E /* Friend.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CCFE3111607EEC900B6702E /* Friend.m */; };
@@ -69,6 +72,10 @@
 		9C79EE2A1606705B0096C5D4 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		9C79EE2B1606705B0096C5D4 /* release_notes.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = release_notes.md; sourceTree = "<group>"; };
 		9C79EE2C1606705B0096C5D4 /* TestFlight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestFlight.h; sourceTree = "<group>"; };
+		9C8380D9160CA0F300A85C3D /* CheckinViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CheckinViewController.h; sourceTree = "<group>"; };
+		9C8380DA160CA0F300A85C3D /* CheckinViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CheckinViewController.m; sourceTree = "<group>"; };
+		9CC58595160CCA9500CD470B /* Icon-iPad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Icon-iPad.png"; path = "../Icon-iPad.png"; sourceTree = "<group>"; };
+		9CC58598160CCA9B00CD470B /* Icon-iPad@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Icon-iPad@2x.png"; path = "../Icon-iPad@2x.png"; sourceTree = "<group>"; };
 		9CCFE2FB1607DC9800B6702E /* Friend+Creation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Friend+Creation.h"; sourceTree = "<group>"; };
 		9CCFE2FC1607DC9800B6702E /* Friend+Creation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Friend+Creation.m"; sourceTree = "<group>"; };
 		9CCFE30D1607E61E00B6702E /* Checkin+Creation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Checkin+Creation.h"; sourceTree = "<group>"; };
@@ -158,6 +165,8 @@
 				2C3D1FEA160419BC00A36C70 /* PlaceMapAnnotation.m */,
 				2CDF667C1603DD8A0091D2D4 /* LogInViewController.h */,
 				2CDF667D1603DD8A0091D2D4 /* LogInViewController.m */,
+				9C8380D9160CA0F300A85C3D /* CheckinViewController.h */,
+				9C8380DA160CA0F300A85C3D /* CheckinViewController.m */,
 				9CEF8D8B1606A59800866B17 /* FileCache.h */,
 				9CEF8D8C1606A59800866B17 /* FileCache.m */,
 				9CEF8D8616069E8200866B17 /* Resources */,
@@ -221,9 +230,19 @@
 			path = lib/TestFlightSDK;
 			sourceTree = "<group>";
 		};
+		9CC5859A160CCB6F00CD470B /* Icons */ = {
+			isa = PBXGroup;
+			children = (
+				9CC58598160CCA9B00CD470B /* Icon-iPad@2x.png */,
+				9CC58595160CCA9500CD470B /* Icon-iPad.png */,
+			);
+			name = Icons;
+			sourceTree = "<group>";
+		};
 		9CEF8D8616069E8200866B17 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				9CC5859A160CCB6F00CD470B /* Icons */,
 				2CDF6641160386820091D2D4 /* MainStoryboard.storyboard */,
 				9CEF8D8316069E7900866B17 /* placeholder.png */,
 			);
@@ -285,6 +304,8 @@
 				2CDF6643160386820091D2D4 /* MainStoryboard.storyboard in Resources */,
 				2CDF66711603BAF70091D2D4 /* FacebookSDKResources.bundle in Resources */,
 				9CEF8D8416069E7900866B17 /* placeholder.png in Resources */,
+				9CC58596160CCA9500CD470B /* Icon-iPad.png in Resources */,
+				9CC58599160CCA9B00CD470B /* Icon-iPad@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -311,6 +332,7 @@
 				9CCFE32A1607F69800B6702E /* Checkin.m in Sources */,
 				9CCFE32D1607F78D00B6702E /* Checkin+MapAnnotation.m in Sources */,
 				9CCFE3301608010200B6702E /* Friend+SectionName.m in Sources */,
+				9C8380DB160CA0F300A85C3D /* CheckinViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

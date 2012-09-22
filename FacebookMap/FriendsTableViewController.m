@@ -23,6 +23,9 @@
 @property (strong, nonatomic) UILocalizedIndexedCollation *collation;
 @property (strong, nonatomic) FileCache *cache;
 @property (nonatomic) BOOL isLoadingFriends;
+@property (nonatomic) NSInteger numberOfFriends;
+@property (nonatomic) NSInteger numberOfRunningRequests;
+@property (nonatomic) dispatch_queue_t queue;
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath;
 @end
 
@@ -35,12 +38,24 @@
 @synthesize sectionedFriends = _sectionedFriends;
 @synthesize locations = _locations;
 @synthesize cache = _cache;
+@synthesize numberOfFriends = _numberOfFriends;
+@synthesize numberOfRunningRequests = _numberOfRunningRequests;
+@synthesize queue = _queue;
+
+- (dispatch_queue_t)queue
+{
+    if (_queue == NULL) {
+        _queue = dispatch_queue_create("friend importer", NULL);
+    }
+    
+    return _queue;
+}
 
 - (FileCache *)cache
 {
     if (!_cache) {
         _cache = [[FileCache alloc] init];
-        _cache.maxSize = 10;
+        _cache.maxSize = 100;
         _cache.domain = @"thumbnails";
     }
     return  _cache;
@@ -122,7 +137,7 @@
 - (void)didFetchAllFriendsWithStartDate:(NSDate *)start
 {
     self.isLoadingFriends = NO;
-    NSLog(@"Friends downloaded from Facebook in %f seconds", [[NSDate date] timeIntervalSinceDate:start]);
+    NSLog(@"Friends (%i) downloaded from Facebook in %f seconds", self.numberOfFriends ,[[NSDate date] timeIntervalSinceDate:start]);
     [TestFlight passCheckpoint:@"friends fetched"];
     
     // Friends are ready to go => Start loading locations
@@ -142,12 +157,13 @@
     [appDelegate facebookCloseSession];
 }
 
+// use this only as an import
 - (void)fetchLocationsForAllFriends
 {
-    // Uncomment the line below to show 'Loading users...' in the first row (bug, it doesn't work!)
-//    self.isLoadingFriends = YES;
-    NSArray *users = [self.fetchedResultsController fetchedObjects];
-//    friends = [friends subarrayWithRange:NSMakeRange(0, 30)];
+    NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Friend"];
+//    request.propertiesToFetch = // TODO:
+    NSArray *users = [self.managedObjectContext executeFetchRequest:request error:nil];
+//    users = [users subarrayWithRange:NSMakeRange(0, 100)];
     NSLog(@"Start fetching locations for %i friends", users.count);
     [self.detailViewController startFetchingCheckinsForFriends:users];
 }
@@ -160,17 +176,19 @@
     [request startWithCompletionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
         if (result && !error) {
             // add to data store
+            self.numberOfFriends++;
             NSLog(@"Processing friends... (limit=%i, offset=%i)", limit, offset);
             NSArray *users = [result objectForKey:@"data"];
             if (users.count > 0) {
                 
                 // Import and save CoreData in the background
                 // It creates it's own context
-                dispatch_queue_t queue = dispatch_queue_create("friend importer", NULL);
-                dispatch_async(queue, ^{
+                dispatch_async(self.queue, ^{
                     NSManagedObjectContext *context = [[NSManagedObjectContext alloc] init];
                     FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
                     context.persistentStoreCoordinator = appDelegate.persistentStoreCoordinator;
+                    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(contextChanged:) name:NSManagedObjectContextDidSaveNotification object:context];
+                    
                     for (NSDictionary<FBGraphUser> *user in users) {
                         [Friend friendWithFacebookInfo:user inManagedObjectContext:context];
                     }
@@ -183,32 +201,39 @@
                         NSLog(@"Error: Couldn't save friends (limit=%i, offset=%i)", limit, offset);
                         NSLog(@"Error: description: %@", [error debugDescription]);
                     }
+                    
+                    [[NSNotificationCenter defaultCenter] removeObserver:self name:NSManagedObjectContextDidSaveNotification object:context];
+                    
+                    dispatch_sync(dispatch_get_main_queue(), ^{
+                        if (--self.numberOfRunningRequests == 0) [self didFetchAllFriendsWithStartDate:start];
+                    });
                 });
                 
                 // check for additional data (recursion)
                 if ([[result objectForKey:@"paging"] objectForKey:@"next"]) {
                     [self fetchFriendsIntoCoreDataWithLimit:limit offset:offset+limit startDate:start];
                 }
-                else {
-                    // this was the last page
-                    [self didFetchAllFriendsWithStartDate:start];
-                }
             }
             else {
                 // this was the last page
-                [self didFetchAllFriendsWithStartDate:start];
+                if (--self.numberOfRunningRequests == 0) [self didFetchAllFriendsWithStartDate:start];
             }
         }
         else {
             [self didFailFetchingAllFriendsWithStartDate:start error:error];
+            if (--self.numberOfRunningRequests == 0) [self didFetchAllFriendsWithStartDate:start];
         }
     }];
+    self.numberOfRunningRequests++;
 }
 
 
 - (void)startFetchingUsersIntoCoreData
 {
-    [self fetchFriendsIntoCoreDataWithLimit:30 offset:0 startDate:[NSDate date]];
+    self.numberOfRunningRequests = 0;
+    // Uncomment the line below to show 'Loading users...' in the first row (bug, it doesn't work!)
+    //    self.isLoadingFriends = YES;
+    [self fetchFriendsIntoCoreDataWithLimit:100 offset:0 startDate:[NSDate date]];
 }
 
 - (void)facebookSessionStateChanged:(NSNotification*)notification {
@@ -217,9 +242,10 @@
             [self startFetchingUsersIntoCoreData];
         }
         else {
-            // TODO: tell MapViewController to refresh its location objects
             [self.detailViewController reloadAnnotationsFromCoreData];
-            [self fetchLocationsForAllFriends];
+            // TODO: tell MapViewController to refresh its location objects from Facebook
+            // NOTE: load only new location objects!
+//            [self fetchLocationsForAllFriends];
         }
         
         // Show the logout button
@@ -248,16 +274,19 @@
 {
     [super viewDidLoad];
     
+//    [((FacebookMapAppDelegate *)[[UIApplication sharedApplication] delegate]) deleteCoreData];
+    
     self.isLoadingFriends = NO;
+    self.numberOfFriends = 0;
     
 	// Do any additional setup after loading the view, typically from a nib.
     self.detailViewController = (MapViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
+    self.detailViewController.friendViewController = self;
 
     // TODO: set up refresh button
     
     // Register for notifications
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(facebookSessionStateChanged:) name:FBSessionStateChangedNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(contentChanged:) name:NSManagedObjectContextDidSaveNotification object:nil];
 }
 
 - (void)viewDidUnload
@@ -388,14 +417,16 @@
     cell.imageView.image = nil;
     cell.imageView.image = [UIImage imageNamed:@"placeholder"];
     
+    NSString *userid = [user.id copy];
     dispatch_queue_t queue = dispatch_queue_create("profile picture downloader", NULL);
     dispatch_async(queue, ^{
-        NSData *imageData = [self.cache dataForKey:user.id];
+        NSData *imageData = [self.cache dataForKey:userid];
         
         if (!imageData) {
-            NSURL *url = [NSURL URLWithString:[FBGraphBasePath stringByAppendingFormat:@"/%@/picture?type=%@", user.id, @"square"]];
+            NSURL *url = [NSURL URLWithString:[FBGraphBasePath stringByAppendingFormat:@"/%@/picture?type=%@", userid, @"square"]];
+//            NSLog(@"dowloading image: %@", url.absoluteString);
             imageData = [NSData dataWithContentsOfURL:url];
-            [self.cache saveData:imageData forKey:user.id];
+            [self.cache saveData:imageData forKey:userid];
         }
         
         UIImage *image = [UIImage imageWithData:imageData];
@@ -470,14 +501,19 @@
     return __fetchedResultsController;
 }    
 
+
 - (void)controllerWillChangeContent:(NSFetchedResultsController *)controller
 {
+    if (!self.isLoadingFriends) return;
+    
     [self.tableView beginUpdates];
 }
 
 - (void)controller:(NSFetchedResultsController *)controller didChangeSection:(id <NSFetchedResultsSectionInfo>)sectionInfo
            atIndex:(NSUInteger)sectionIndex forChangeType:(NSFetchedResultsChangeType)type
 {
+    if (!self.isLoadingFriends) return;
+    
     switch(type) {
         case NSFetchedResultsChangeInsert:
             [self.tableView insertSections:[NSIndexSet indexSetWithIndex:sectionIndex] withRowAnimation:UITableViewRowAnimationFade];
@@ -493,6 +529,8 @@
        atIndexPath:(NSIndexPath *)indexPath forChangeType:(NSFetchedResultsChangeType)type
       newIndexPath:(NSIndexPath *)newIndexPath
 {
+    if (!self.isLoadingFriends) return;
+    
     UITableView *tableView = self.tableView;
     
     switch(type) {
@@ -517,29 +555,20 @@
 
 - (void)controllerDidChangeContent:(NSFetchedResultsController *)controller
 {
+    if (!self.isLoadingFriends) return;
+    
     [self.tableView endUpdates];
 }
 
-- (void)contentChanged:(NSNotification *)notification
+
+- (void)contextChanged:(NSNotification *)notification
 {
-    if ([notification object] == [self managedObjectContext]) return;
-//    if ([[[notification.userInfo objectForKey:NSInsertedObjectsKey] anyObject] isKindOfClass:[Checkin class]]) return;
+    if (notification.object == self.managedObjectContext) return;
 
-    for (id object in [notification.userInfo objectForKey:NSInsertedObjectsKey]) {
-//            NSLog(@"inserted: %@", object);
-        if ([object isKindOfClass:[Checkin class]]) return;
-    }
-    for (id object in [notification.userInfo objectForKey:NSUpdatedObjectsKey]) {
-//        NSLog(@"updated: %@", object);
-        if ([object isKindOfClass:[Checkin class]]) return;
-    }
     
-    if (![NSThread isMainThread]) {
-        [self performSelectorOnMainThread:@selector(contentChanged:) withObject:notification waitUntilDone:YES];
-        return;
-    }
-
-    [[self managedObjectContext] mergeChangesFromContextDidSaveNotification:notification];
+    [self.managedObjectContext performBlockAndWait:^{
+        [self.managedObjectContext mergeChangesFromContextDidSaveNotification:notification];
+    }];
 }
 
 /*
@@ -550,7 +579,7 @@
     // In the simplest, most efficient, case, reload the table view.
     [self.tableView reloadData];
 }
- */
+*/
 
 
 @end
