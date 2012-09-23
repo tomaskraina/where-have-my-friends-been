@@ -12,6 +12,18 @@
 
 @implementation Checkin (MapAnnotation)
 
++ (NSDateFormatter *)sharedDateFormatter
+{
+    static dispatch_once_t once;
+    static NSDateFormatter *sharedInstance;
+    dispatch_once(&once, ^{
+        sharedInstance = [[NSDateFormatter alloc] init];
+        sharedInstance.timeStyle = NSDateFormatterShortStyle;
+        sharedInstance.dateStyle = NSDateFormatterMediumStyle;
+    });
+    return sharedInstance;
+}
+
 - (CLLocationCoordinate2D)coordinate
 {
     return CLLocationCoordinate2DMake([self.location.latitude doubleValue], [self.location.longitude doubleValue]);
@@ -34,10 +46,7 @@
 
 -(NSString *)subtitle
 {
-    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-    dateFormatter.timeStyle = NSDateFormatterShortStyle;
-    dateFormatter.dateStyle = NSDateFormatterMediumStyle;
-    return [NSString stringWithFormat:@"%@ on %@", self.location.name, [dateFormatter stringFromDate:self.created_time]];
+    return [NSString stringWithFormat:@"%@ on %@", self.location.name, [[Checkin sharedDateFormatter] stringFromDate:self.created_time]];
 }
 
 @end

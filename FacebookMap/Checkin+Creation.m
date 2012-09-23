@@ -25,6 +25,17 @@
     return sharedInstance;
 }
 
++ (NSDateFormatter *)sharedFacebookDateFormatter
+{
+    static dispatch_once_t once;
+    static NSDateFormatter *sharedInstance;
+    dispatch_once(&once, ^{
+        sharedInstance = [[NSDateFormatter alloc] init];
+        sharedInstance.dateFormat = FACEBOOK_DATETIME_FORMAT;
+    });
+    return sharedInstance;
+}
+
 + (Checkin *)checkinWithFacebookInfo:(NSDictionary *)checkinInfo
                              forUser:(Friend *)user
               inManagedObjectContext:(NSManagedObjectContext *)context
@@ -56,10 +67,8 @@
         checkin.from_id = [[checkinInfo objectForKey:@"from"] objectForKey:@"id"];
         checkin.from_name = [[checkinInfo objectForKey:@"from"] objectForKey:@"name"];
 
-        // TODO: convert string to NSDate
-        NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-        dateFormatter.dateFormat = FACEBOOK_DATETIME_FORMAT;
-        checkin.created_time = [dateFormatter dateFromString:[checkinInfo objectForKey:@"created_time"]];
+        // Convert string to NSDate;
+        checkin.created_time = [[self sharedFacebookDateFormatter] dateFromString:[checkinInfo objectForKey:@"created_time"]];
         checkin.location = [Location locationWithFacebookInfo:[checkinInfo objectForKey:@"place"] inManagedObjectContext:context];
         if (!checkin.location) {
             NSLog(@"Error creating Locations with data: %@", [checkinInfo objectForKey:@"place"]);
