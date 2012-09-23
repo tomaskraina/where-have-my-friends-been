@@ -231,11 +231,13 @@ static NSTimeInterval AnimationDuration = 1;
                 // Import and save CoreData in the background
                 // It creates it's own context
                 dispatch_group_async(self.fetchingGroup, self.fetchingQueue, ^{
+                    // Create and set up import context
                     NSManagedObjectContext *context = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSConfinementConcurrencyType];
                     context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy;
                     self.managedObjectContext.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy;
                     FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
                     context.persistentStoreCoordinator = appDelegate.persistentStoreCoordinator;
+                    context.undoManager = nil; // Performance optimization
                     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(contextChanged:) name:NSManagedObjectContextDidSaveNotification object:context];
                 
                     for (NSDictionary<FBGraphObject> *checkin in checkins) {
