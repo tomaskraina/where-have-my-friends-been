@@ -10,6 +10,17 @@
 
 @implementation Location (Creation)
 
+// use variable substitution for LOCATION_ID
++ (id)sharedPredicateWithLocationId
+{
+    static dispatch_once_t once;
+    static id sharedInstance;
+    dispatch_once(&once, ^{
+        sharedInstance = [NSPredicate predicateWithFormat:@"id = $LOCATION_ID"];
+    });
+    return sharedInstance;
+}
+
 + (Location *)locationWithFacebookInfo:(NSDictionary<FBGraphPlace> *)placeInfo
                 inManagedObjectContext:(NSManagedObjectContext *)context
 {
@@ -21,7 +32,8 @@
     Location *location;
     
     NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Location"];
-    request.predicate = [NSPredicate predicateWithFormat:@"id = %@", placeInfo.id];
+    NSDictionary *variables = [NSDictionary dictionaryWithObject:[placeInfo objectForKey:@"id"] forKey:@"LOCATION_ID"];
+    request.predicate = [[self sharedPredicateWithLocationId] predicateWithSubstitutionVariables:variables];
     request.sortDescriptors = nil;
     
     NSError *error;
