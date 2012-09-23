@@ -13,6 +13,18 @@
 
 @implementation Checkin (Creation)
 
+
+// use variable substitution for CHECKIN_ID
++ (id)sharedPredicateWithCheckinId
+{
+    static dispatch_once_t once;
+    static id sharedInstance;
+    dispatch_once(&once, ^{
+        sharedInstance = [NSPredicate predicateWithFormat:@"id = $CHECKIN_ID"];
+    });
+    return sharedInstance;
+}
+
 + (Checkin *)checkinWithFacebookInfo:(NSDictionary *)checkinInfo
                              forUser:(Friend *)user
               inManagedObjectContext:(NSManagedObjectContext *)context
@@ -20,7 +32,8 @@
     Checkin *checkin;
     
     NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Checkin"];
-    request.predicate = [NSPredicate predicateWithFormat:@"id = %@", [checkinInfo objectForKey:@"id"]];
+    NSDictionary *variables = [NSDictionary dictionaryWithObject:[checkinInfo objectForKey:@"id"] forKey:@"CHECKIN_ID"];
+    request.predicate = [[self sharedPredicateWithCheckinId] predicateWithSubstitutionVariables:variables];
     request.sortDescriptors = nil;
     
     NSError *error;
