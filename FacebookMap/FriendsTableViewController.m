@@ -138,7 +138,7 @@
 {
     self.isLoadingFriends = NO;
     NSLog(@"Friends (%i) downloaded from Facebook in %f seconds", self.numberOfFriends ,[[NSDate date] timeIntervalSinceDate:start]);
-    [TestFlight passCheckpoint:@"friends fetched"];
+//    [TestFlight passCheckpoint:@"friends fetched"];
     
     // Friends are ready to go => Start loading locations
     [self fetchLocationsForAllFriends];
@@ -152,7 +152,7 @@
 
 - (void)performLogout:(id)sender
 {
-    [TestFlight passCheckpoint:@"tap logout"];
+//    [TestFlight passCheckpoint:@"tap logout"];
     FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
     [appDelegate facebookCloseSession];
 }

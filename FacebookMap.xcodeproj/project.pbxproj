@@ -25,7 +25,6 @@
 		2CDF66711603BAF70091D2D4 /* FacebookSDKResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 2CDF66701603BAF70091D2D4 /* FacebookSDKResources.bundle */; };
 		2CDF667E1603DD8A0091D2D4 /* LogInViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CDF667D1603DD8A0091D2D4 /* LogInViewController.m */; };
 		9C79EE271606647B0096C5D4 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C79EE261606647B0096C5D4 /* libz.dylib */; };
-		9C79EE2D1606705B0096C5D4 /* libTestFlight.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C79EE291606705B0096C5D4 /* libTestFlight.a */; };
 		9C8380DB160CA0F300A85C3D /* CheckinViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C8380DA160CA0F300A85C3D /* CheckinViewController.m */; };
 		9CC58596160CCA9500CD470B /* Icon-iPad.png in Resources */ = {isa = PBXBuildFile; fileRef = 9CC58595160CCA9500CD470B /* Icon-iPad.png */; };
 		9CC58599160CCA9B00CD470B /* Icon-iPad@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9CC58598160CCA9B00CD470B /* Icon-iPad@2x.png */; };
@@ -68,10 +67,6 @@
 		2CDF667C1603DD8A0091D2D4 /* LogInViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LogInViewController.h; sourceTree = "<group>"; };
 		2CDF667D1603DD8A0091D2D4 /* LogInViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogInViewController.m; sourceTree = "<group>"; };
 		9C79EE261606647B0096C5D4 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
-		9C79EE291606705B0096C5D4 /* libTestFlight.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libTestFlight.a; sourceTree = "<group>"; };
-		9C79EE2A1606705B0096C5D4 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
-		9C79EE2B1606705B0096C5D4 /* release_notes.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = release_notes.md; sourceTree = "<group>"; };
-		9C79EE2C1606705B0096C5D4 /* TestFlight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestFlight.h; sourceTree = "<group>"; };
 		9C8380D9160CA0F300A85C3D /* CheckinViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CheckinViewController.h; sourceTree = "<group>"; };
 		9C8380DA160CA0F300A85C3D /* CheckinViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CheckinViewController.m; sourceTree = "<group>"; };
 		9CC58595160CCA9500CD470B /* Icon-iPad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Icon-iPad.png"; path = "../Icon-iPad.png"; sourceTree = "<group>"; };
@@ -110,7 +105,6 @@
 				2CDF6634160386820091D2D4 /* CoreData.framework in Frameworks */,
 				2CDF666F1603BAEB0091D2D4 /* FacebookSDK.framework in Frameworks */,
 				9C79EE271606647B0096C5D4 /* libz.dylib in Frameworks */,
-				9C79EE2D1606705B0096C5D4 /* libTestFlight.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -137,7 +131,6 @@
 		2CDF662C160386820091D2D4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				9C79EE281606705B0096C5D4 /* TestFlightSDK */,
 				9C79EE261606647B0096C5D4 /* libz.dylib */,
 				2CDF66701603BAF70091D2D4 /* FacebookSDKResources.bundle */,
 				2CDF666E1603BAEB0091D2D4 /* FacebookSDK.framework */,
@@ -216,18 +209,6 @@
 				9CCFE3261607F67C00B6702E /* Location.m */,
 			);
 			name = "Core Data Generated";
-			sourceTree = "<group>";
-		};
-		9C79EE281606705B0096C5D4 /* TestFlightSDK */ = {
-			isa = PBXGroup;
-			children = (
-				9C79EE291606705B0096C5D4 /* libTestFlight.a */,
-				9C79EE2A1606705B0096C5D4 /* README.md */,
-				9C79EE2B1606705B0096C5D4 /* release_notes.md */,
-				9C79EE2C1606705B0096C5D4 /* TestFlight.h */,
-			);
-			name = TestFlightSDK;
-			path = lib/TestFlightSDK;
 			sourceTree = "<group>";
 		};
 		9CC5859A160CCB6F00CD470B /* Icons */ = {
@@ -423,10 +404,7 @@
 				GCC_PREFIX_HEADER = "FacebookMap/FacebookMap-Prefix.pch";
 				GCC_VERSION = "";
 				INFOPLIST_FILE = "FacebookMap/FacebookMap-Info.plist";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/lib/TestFlightSDK\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-lsqlite3.0";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
@@ -447,10 +425,7 @@
 				GCC_PREFIX_HEADER = "FacebookMap/FacebookMap-Prefix.pch";
 				GCC_VERSION = "";
 				INFOPLIST_FILE = "FacebookMap/FacebookMap-Info.plist";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/lib/TestFlightSDK\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-lsqlite3.0";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";

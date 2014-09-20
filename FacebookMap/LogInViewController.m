@@ -14,7 +14,7 @@
 - (IBAction)performLogin
 {
     // TODO: spinner maybe?
-    [TestFlight passCheckpoint:@"tap login"];
+//    [TestFlight passCheckpoint:@"tap login"];
     
     FacebookMapAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
     [appDelegate facebookOpenSessionWithAllowLoginUI:YES];
